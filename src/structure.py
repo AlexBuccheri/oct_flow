@@ -8,6 +8,8 @@ import numpy as np
 import scipy.linalg
 from sympy.parsing.sympy_parser import parse_expr
 
+bohr_to_ang = 0.52917721092
+ang_to_bohr = 1. / bohr_to_ang
 
 def parse_key_value_pairs(input:str) -> dict:
     """ Parse key-value blocks from Octopus input files.
@@ -229,7 +231,6 @@ def parse_oct_structure_to_atoms(options: dict) -> ase.atoms.Atoms:
     :param options:
     :return:
     """
-    bohr_to_ang = 0.52917721092
 
     # Get cell angles from the lattice vectors
     lattice_vectors = options['LatticeVectors']
@@ -270,21 +271,38 @@ def parse_oct_structure_to_atoms(options: dict) -> ase.atoms.Atoms:
     return atoms
 
 
-
-
-
 def ase_atoms_to_oct_structure(atoms: ase.atoms.Atoms) -> str:
+    """ Convert ASE Atoms instance to Octopus input substring for:
+    LatticeVectors and Coordinates, noting that LatticeParameters
+    are absorbed in the LatticeVectors.
+
+    :param atoms: Atoms instance.
+    :return: input_string: Structure substring
     """
+    input_string = ""
 
-    :param atoms:
-    :return:
-    """
+    # LatticeVectors (row-wise in ASE, and Octopus input)
+    lattice = atoms.get_cell().array * ang_to_bohr
+    input_string += "%LatticeVectors\n"
+    for vector in lattice:
+        input_string += " ".join(f"{r:.9f} |" for r in vector)[:-1] + '\n'
+    input_string += "%\n"
 
-    # Output lattice vectors
+    # Coordinates
+    species = atoms.get_chemical_symbols()
+    positions = np.asarray(atoms.get_positions()) * ang_to_bohr
+    n_atoms = len(species)
 
-    # 'Species'
+    # Pad with trailing whitespace, to achieve alignment when printing
+    unique_species = set(species)
+    max_len = len(max(unique_species))
+    pad = lambda x: " " * (max_len - len(x))
+    whitespace = [pad(x) for x in species]
 
-    # Output Position in Bohr?
+    input_string += "%Coordinates\n"
+    for i in range(0, n_atoms):
+        line = f"\"{species[i]}\"{whitespace[i]} | " + " ".join(f"{r:.18e} |" for r in positions[i])[:-1]
+        input_string += line + '\n'
+    input_string += "%\n"
 
-    struct_input = ""
-    return struct_input
+    return input_string
