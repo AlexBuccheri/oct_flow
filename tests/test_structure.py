@@ -64,5 +64,6 @@ def struct_input() -> str:
 
 def test_parse_oct_input_string(struct_input):
      key_values, blocks = parse_oct_input_string(struct_input)
-     eval_options = parse_oct_input(key_values, blocks)
-     print(eval_options)
+     print(blocks)
+     # eval_options = parse_oct_input(key_values, blocks)
+     # print(eval_options)

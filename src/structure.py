@@ -7,11 +7,15 @@ import ase
 from sympy.parsing.sympy_parser import parse_expr
 import sympy
 
-def parse_key_value_pairs(input:str) -> dict:
-    """
 
-    :param input:
-    :return:
+def parse_key_value_pairs(input:str) -> dict:
+    """ Parse key-value blocks from Octopus input files.
+
+    Key-values are defined as key = value.
+
+    :param input: Octopus input file string.
+    :return: Dict of key-value pairs from Octopus input.
+    Values are returned as strings.
     """
     input_dict = {}
 
@@ -28,13 +32,23 @@ def parse_key_value_pairs(input:str) -> dict:
     return input_dict
 
 
-def parse_block(input:str, key: str) -> list:
-    """
-    In principle, should parse as strings,
-    then do the substitution as below
-    :param input:
-    :param pattern:
-    :return: List of strings
+def parse_block(input: str, key: str) -> list:
+    """ Parse a block from an Octopus input file string.
+
+    Blocks are defined as:
+
+    ```
+    %Key
+    x | y | z
+    %
+    ```
+
+    with entries separated by "|". Blocks can be multiple lines/
+
+    :param input: Octopus input file string.
+    :param key: Key of the block (see above).
+    :return: block: List, with len n_lines, where each element contains
+     a line of the parsed block. BLock lines returned as strings.
     """
     block = []
     match = re.search(rf'%{key}(.*?)%', input, re.DOTALL)
@@ -55,9 +69,13 @@ def parse_block(input:str, key: str) -> list:
 
 
 def parse_coordinates(input: str) -> tuple:
-    """
+    """ Parse Coordinates block from Octopus input string.
 
-    :return:
+    Defined as special function, but this could also be handled by `parse_block`
+    and return [["Si", '0', '0', '0'], ["Si", '0.25', '0.25', '0.25']] for example.
+
+    :param input: Octopus input file string.
+    :return: species, positions: Lists of species and positions, respectively.
     """
     species = []
     positions = []
@@ -89,9 +107,10 @@ def parse_oct_input_string(input: str) -> Tuple[dict, dict]:
     key_values = parse_key_value_pairs(input)
 
     blocks = {}
-    for key in ['LatticeVectors', 'LatticeParameters', 'Spacing', 'KPointsGrid']:
+    for key in ['LatticeVectors', 'LatticeParameters', 'Spacing', 'KPointsGrid', 'Coordinates']:
         blocks[key] = parse_block(input, key)
 
+    # Parsing with `parse_block` instead
     # Special structure
     # Shouldn't have this here, as coordinates are already float
     # blocks['Species'], blocks['Coordinates'] = parse_coordinates(input)
