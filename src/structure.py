@@ -89,7 +89,7 @@ def parse_coordinates(input: str) -> tuple:
         positions = []
         for line in coords_string:
             tmp = line.split('|')
-            species.append(tmp[0])
+            species.append(tmp[0].replace("\"", ''))
             positions.append([float(r) for r in tmp[1:]])
 
     return species, positions
@@ -109,11 +109,6 @@ def parse_oct_input_string(input: str) -> Tuple[dict, dict]:
     blocks = {}
     for key in ['LatticeVectors', 'LatticeParameters', 'Spacing', 'KPointsGrid']:
         blocks[key] = parse_block(input, key)
-
-    # Parsing with `parse_block` instead
-    # Special structure
-    # Shouldn't have this here, as coordinates are already float
-    # blocks['Species'], blocks['Coordinates'] = parse_coordinates(input)
 
     return key_values, blocks
 
@@ -204,38 +199,38 @@ def parse_oct_input(key_values: dict, blocks: dict) -> dict:
 
 
 
-# def parse_oct_structure(options: dict) -> ase.atoms.Atoms:
-#
-#     # TODOs(Alex)
-#     # Need to multiply lattice vectors by lattice Parameters
-#     # check the logic for this, and if lattice vectors are row wise (assume so)
-#     # Convert Bohr to Angstrom
-#     # Assume Coordinates in Bohr - check
-#     atoms = ase.atoms.Atoms(symbols= options['Species'],
-#                             positions=options['Coordinates'],
-#                             cell=options['LatticeVectors'],
-#                             pbc=True
-#                             )
-#
-#
-#     return
+def parse_oct_structure(options: dict) -> ase.atoms.Atoms:
+
+    # TODOs(Alex)
+    # Need to multiply lattice vectors by lattice Parameters
+    # check the logic for this, and if lattice vectors are row wise (assume so)
+    # Convert Bohr to Angstrom
+    # Assume Coordinates in Bohr - check
+    atoms = ase.atoms.Atoms(symbols= options['Species'],
+                            positions=options['Coordinates'],
+                            cell=options['LatticeVectors'],
+                            pbc=True
+                            )
+
+
+    return
 
 
 
 
 
-# def ase_atoms_to_oct_structure(atoms: ase.atoms.Atoms) -> str:
-#     """
-#
-#     :param atoms:
-#     :return:
-#     """
-#
-#     # Get lattice vectors
-#
-#     # Get lattice parameters from the vectors. Look like Bohr
-#
-#     # 'Species', Position in Ang or bohr?
-#
-#     struct_input = ""
-#     return struct_input
+def ase_atoms_to_oct_structure(atoms: ase.atoms.Atoms) -> str:
+    """
+
+    :param atoms:
+    :return:
+    """
+
+    # Get lattice vectors
+
+    # Get lattice parameters from the vectors. Look like Bohr
+
+    # 'Species', Position in Ang or bohr?
+
+    struct_input = ""
+    return struct_input
