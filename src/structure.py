@@ -1,11 +1,12 @@
 """ Convert Octopus-formatted structure input to ASE Atoms, and vice versa.
 """
 import re
-from typing import Tuple
+from typing import Tuple, List
 
 import ase
+import numpy as np
+import scipy.linalg
 from sympy.parsing.sympy_parser import parse_expr
-import sympy
 
 
 def parse_key_value_pairs(input:str) -> dict:
@@ -68,33 +69,6 @@ def parse_block(input: str, key: str) -> list:
     return block
 
 
-def parse_coordinates(input: str) -> tuple:
-    """ Parse Coordinates block from Octopus input string.
-
-    Defined as special function, but this could also be handled by `parse_block`
-    and return [["Si", '0', '0', '0'], ["Si", '0.25', '0.25', '0.25']] for example.
-
-    :param input: Octopus input file string.
-    :return: species, positions: Lists of species and positions, respectively.
-    """
-    species = []
-    positions = []
-    match = re.search(r'%Coordinates(.*?)%', input, re.DOTALL)
-    if match:
-        # Strip whitespace and split w.r.t. line breaks
-        coords_string = match.group(1).strip().replace(" ", "").split('\n')
-
-        # Fill species and positions
-        species = []
-        positions = []
-        for line in coords_string:
-            tmp = line.split('|')
-            species.append(tmp[0].replace("\"", ''))
-            positions.append([float(r) for r in tmp[1:]])
-
-    return species, positions
-
-
 def parse_oct_input_string(input: str) -> Tuple[dict, dict]:
     """
 
@@ -107,40 +81,70 @@ def parse_oct_input_string(input: str) -> Tuple[dict, dict]:
     key_values = parse_key_value_pairs(input)
 
     blocks = {}
-    for key in ['LatticeVectors', 'LatticeParameters', 'Spacing', 'KPointsGrid']:
+    for key in ['LatticeVectors', 'LatticeParameters', 'Spacing', 'KPointsGrid', 'Coordinates']:
         blocks[key] = parse_block(input, key)
+
+    # Clean up species quotations
+    coordinates = []
+    for entry in blocks['Coordinates']:
+        coordinates.append([x.replace("\"", '') for x in entry])
+    blocks['Coordinates'] = coordinates
 
     return key_values, blocks
 
 
+def parse_oct_dict_to_values(key_values: dict, blocks: dict) -> dict:
+    """
+    Do recursive substitution on the values, according to matching
+    with prior keys
+    Convert from strings to numbers where appropriate
 
-def eval_string(value, explicit_def=None):
+
+    :param options:
+    :return:
+    """
+    # Function to recursively apply re.sub for all elements of lists/nested lists
+    # Will not work for non-lists (silently gives wrong result), hence try/except
+    # block in body of `parse_oct_dict_to_values` double-loop
+    def recursive_modify(lst, key: str, replace_val):
+        for i, item in enumerate(lst):
+            if isinstance(item, list):
+                recursive_modify(item, key,replace_val)
+            else:
+                lst[i] = re.sub(rf'{key}', replace_val, item)
+
+    # key-values from input
+    for key, var_val in key_values.items():
+        # blocks, which should not define variables, only use variables
+        for key2, block_val in blocks.items():
+            if not isinstance(block_val, list):
+                blocks[key2] = re.sub(rf'{key}', var_val, block_val)
+            else:
+                recursive_modify(block_val, key, var_val)
+
+    return {**key_values, **blocks}
+
+
+def eval_string(value):
     """
 
     :param value:
     :param no_convert:
     :return:
     """
-    # State explicit conversions for sympy
-    if explicit_def is None:
-        # Need this defined for all elements i.e. '"H"', '"He"', etc
-        # OR parse coordinates after all of this
-        explicit_def = {}
-
     try:
         float(value)
         return float(value)
     except (TypeError, ValueError):
-        try:
-            value = parse_expr(value, local_dict=explicit_def).evalf()
-            return value
-        except (TypeError, ValueError, SyntaxError):
-            return value
+        return value
 
-def evaluate_expressions(options: dict) -> dict:
+
+def evaluate_strings(options: dict) -> dict:
     """
 
-     Unfortunately need another pass to evaluate expressions
+    Essentially run this on specific keys once the dict is parsed,
+    as sympy is too aggressive. i.e. 'H' gets converted to a Symbol,
+    parallelepiped gets converted to a Symbol, etc.
 
     :param options:
     :return:
@@ -154,66 +158,116 @@ def evaluate_expressions(options: dict) -> dict:
             else:
                 lst[i] = eval_string(item)
 
-    # Keys that should not be interpretted as symbolic
-    no_convert = {sympy.symbols('no'): 'no'}
+    # Keys that should not be interpreted as symbolic
+    # no_convert = {sympy.symbols('no'): 'no', sympy.symbols('H'): 'H'}
 
     for key in options.keys():
         if not isinstance(options[key], list):
-            options[key] = eval_string(options[key], explicit_def=no_convert)
+            options[key] = eval_string(options[key])
         else:
             recursive_eval(options[key])
 
     return options
 
-def parse_oct_input(key_values: dict, blocks: dict) -> dict:
-    """
-    Do recursive substitution on the values, according to matching
-    with prior keys
-    Convert from strings to numbers
 
+def parse_oct_input(input: str, do_substitutions=True) -> dict:
+    """ Top level parser routine for Ocotpus input file.
+
+    :param input:
+    :param do_substitutions: Substitute variable definitions in strings
+    and evaluate strings, converting to float where appropriate.
+    Note, this does not evaluate mathematical expressions
+    :return:
+    """
+    key_values, blocks = parse_oct_input_string(input)
+    if do_substitutions:
+        options = parse_oct_dict_to_values(key_values, blocks)
+        return evaluate_strings(options)
+    else:
+        return {**key_values, **blocks}
+
+
+def evaluate_expressions(options: dict, keys: str | List[str], expressions: dict) -> dict:
+    """
+
+    :param options:
+    :param keys:
+    :param expressions:
+    :return:
+    """
+    def recursive_eval(lst, local_dict):
+        for i, item in enumerate(lst):
+            if isinstance(item, list):
+                recursive_eval(item, local_dict)
+            else:
+                try:
+                    lst[i] = parse_expr(item, local_dict=expressions).evalf()
+                except (AttributeError, TypeError, ValueError, SyntaxError):
+                    pass
+
+    if type(keys) == str:
+        keys = [keys]
+
+    for key in keys:
+        if isinstance(options[key], list):
+            recursive_eval(options[key],expressions)
+        else:
+            options[key] = parse_expr(options[key], local_dict=expressions).evalf()
+
+    return options
+
+
+def unit_vector(a):
+    return np.asarray(a) / scipy.linalg.norm(a)
+
+
+def parse_oct_structure_to_atoms(options: dict) -> ase.atoms.Atoms:
+    """
+
+    Lattice vectors stored rowwise.
 
     :param options:
     :return:
     """
-    # Function to recursively apply re.sub for all elements of lists/nested lists
-    # Will not work for non-lists (silently gives wrong result)
-    def recursive_modify(lst, key: str, replace_val):
-        for i, item in enumerate(lst):
-            if isinstance(item, list):
-                recursive_modify(item, key,replace_val)
-            else:
-                lst[i] = re.sub(rf'{key}', replace_val, item)
+    bohr_to_ang = 0.52917721092
 
-    # key-values from input
-    for key, var_val in key_values.items():
-        # blocks, which should not define variables, only use variables
-        for key2, block_val in blocks.items():
-            if not isinstance(block_val, list):
-                blocks[key2] =  re.sub(rf'{key}', var_val, block_val)
-            else:
-                recursive_modify(block_val, key, var_val)
+    # Get cell angles from the lattice vectors
+    lattice_vectors = options['LatticeVectors']
+    n_dim = len(lattice_vectors)
 
-    return {**key_values, **blocks}
+    assert n_dim == 3, "Calculation of angles between lattice vectors only coded for 3D systems"
 
+    lattice_angles = []
+    for i in range(0, n_dim):
+        j = (i + 1) % n_dim
+        angle = np.arccos(np.dot(unit_vector(lattice_vectors[i]), unit_vector(lattice_vectors[j])))
+        lattice_angles.append(np.degrees(angle))
 
+    lattice_parameters = [x * bohr_to_ang for x in options['LatticeParameters']]
 
+    # TODO(Alex) No idea what convention they're using
+    # Multiply each lattice parameter by norm of each lattice vector
+    for i in range(0, n_dim):
+        lattice_parameters[i] *= scipy.linalg.norm(lattice_vectors[i])
 
+    # TODO(Alex) User can specify input units - would need to check for those.
+    #  Yes/No can be appended to the end of a Coordinate line - would need to check for that too
+    # Convert units
+    positions = []
+    #  Need shift the atomic positions. Is this a problem for Octopus?
+    origin = np.array([r * bohr_to_ang for r in options['Coordinates'][0][1:]])
+    for entry in options['Coordinates']:
+        positions.append(np.array([r * bohr_to_ang for r in entry[1:]]) - origin)
 
-def parse_oct_structure(options: dict) -> ase.atoms.Atoms:
-
-    # TODOs(Alex)
-    # Need to multiply lattice vectors by lattice Parameters
-    # check the logic for this, and if lattice vectors are row wise (assume so)
-    # Convert Bohr to Angstrom
-    # Assume Coordinates in Bohr - check
-    atoms = ase.atoms.Atoms(symbols= options['Species'],
-                            positions=options['Coordinates'],
-                            cell=options['LatticeVectors'],
+    atoms = ase.atoms.Atoms(symbols=[entry[0] for entry in options['Coordinates']],
+                            positions=positions,
                             pbc=True
                             )
 
+    # If cell is six numbers, assume three lengths, then three angles.
+    atoms.set_cell(lattice_parameters + lattice_angles, scale_atoms=False)
 
-    return
+    return atoms
 
 
 
@@ -226,11 +280,11 @@ def ase_atoms_to_oct_structure(atoms: ase.atoms.Atoms) -> str:
     :return:
     """
 
-    # Get lattice vectors
+    # Output lattice vectors
 
-    # Get lattice parameters from the vectors. Look like Bohr
+    # 'Species'
 
-    # 'Species', Position in Ang or bohr?
+    # Output Position in Bohr?
 
     struct_input = ""
     return struct_input

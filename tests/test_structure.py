@@ -1,6 +1,7 @@
 import pytest
+import sympy
 
-from src.structure import parse_oct_input_string, parse_oct_input, evaluate_expressions, parse_coordinates
+from src.structure import parse_oct_input_string, parse_oct_input, evaluate_expressions, parse_oct_structure_to_atoms
 
 
 @pytest.fixture()
@@ -63,9 +64,10 @@ def struct_input() -> str:
 
 
 def test_parse_oct_input_string(struct_input):
-     key_values, blocks = parse_oct_input_string(struct_input)
-     options = parse_oct_input(key_values, blocks)
-     eval_options = evaluate_expressions(options)
-     # Special structure
-     eval_options['Species'], eval_options['Coordinates'] = parse_coordinates(struct_input)
-     print(eval_options)
+    input = parse_oct_input(struct_input)
+    input = evaluate_expressions(input, 'LatticeParameters', {'sqrt': sympy.sqrt})
+    print(input)
+
+    atoms = parse_oct_structure_to_atoms(input)
+    from ase.visualize import view
+    view(atoms)
