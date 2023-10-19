@@ -11,6 +11,7 @@ from sympy.parsing.sympy_parser import parse_expr
 bohr_to_ang = 0.52917721092
 ang_to_bohr = 1. / bohr_to_ang
 
+
 def parse_key_value_pairs(input:str) -> dict:
     """ Parse key-value blocks from Octopus input files.
 
@@ -306,3 +307,28 @@ def ase_atoms_to_oct_structure(atoms: ase.atoms.Atoms) -> str:
     input_string += "%\n"
 
     return input_string
+
+
+def write_octopus_input(options: dict) -> str:
+    """
+
+    :param options:
+    :return:
+    """
+    input = ""
+
+    for key, value in options.items():
+        if isinstance(value, list):
+            input += f"%{key}\n"
+            # Nested list (note, do not expect more than one level of nesting)
+            if isinstance(value[0], list):
+                for v in value:
+                    input += " ".join(f"{s} |" for s in v)[:-1] + "\n"
+            # Single list
+            else:
+                input += " ".join(f"{s} |" for s in value)[:-1] + "\n"
+            input += "%\n"
+        else:
+            input += f"{key} = {value}\n"
+
+    return input

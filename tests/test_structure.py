@@ -1,8 +1,8 @@
 import pytest
 import sympy
 
-from src.structure import (parse_oct_input, evaluate_expressions, parse_oct_structure_to_atoms,
-                           ase_atoms_to_oct_structure)
+from src.structure import parse_oct_input, evaluate_expressions, parse_oct_structure_to_atoms, \
+                           ase_atoms_to_oct_structure, write_octopus_input
 
 
 @pytest.fixture()
@@ -67,9 +67,24 @@ def struct_input() -> str:
 def test_parse_oct_input_string(struct_input):
     input = parse_oct_input(struct_input)
     input = evaluate_expressions(input, 'LatticeParameters', {'sqrt': sympy.sqrt})
+    print(input)
     atoms = parse_oct_structure_to_atoms(input)
     # from ase.visualize import view
     # view(atoms)
+    # print(ase_atoms_to_oct_structure(atoms))
 
-    print(ase_atoms_to_oct_structure(atoms))
 
+def test_write_octopus_input():
+    options = {'PeriodicDimensions': 2.0,
+               'BoxShape': 'parallelepiped',
+               'KPointsUseSymmetries': 'no',
+               'LatticeVectors': [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 10.0]],
+               'LatticeParameters': [7.25576410311140, 7.25576410311140, 10.2612],
+               'Spacing': [0.45, 0.45, 0.35],
+               'KPointsGrid': [2.0, 2.0, 1.0],
+               'Coordinates': [['H', -7.61477639200855, 0.0, -31.089563744],
+                               ['H', -3.26886976265855, 0.0, -31.089563744],
+                               ['Si', -5.44182307733355, 0.0, -29.335900804]]
+               }
+
+    print(write_octopus_input(options))
