@@ -118,6 +118,28 @@ def parse_oct_input_string(input: str) -> Tuple[dict, dict]:
     return key_values, blocks
 
 
+def eval_string(value, explicit_def=None):
+    """
+
+    :param value:
+    :param no_convert:
+    :return:
+    """
+    # State explicit conversions for sympy
+    if explicit_def is None:
+        explicit_def = {}
+
+    try:
+        float(value)
+        return float(value)
+    except (TypeError, ValueError):
+        try:
+            value = parse_expr(value, locals=explicit_def).evalf()
+            return value
+        except (TypeError, ValueError, SyntaxError):
+            return value
+
+
 def parse_oct_input(key_values: dict, blocks: dict) -> dict:
     """
     Do recursive substitution on the values, according to matching
@@ -147,7 +169,6 @@ def parse_oct_input(key_values: dict, blocks: dict) -> dict:
             else:
                 recursive_modify(block_val, key, var_val)
 
-
     # TODO(Alex) Split this into a separate routine
     # Unfortunately need another pass to evaluate expressions
     def recursive_eval(lst):
@@ -155,32 +176,16 @@ def parse_oct_input(key_values: dict, blocks: dict) -> dict:
             if isinstance(item, list):
                 recursive_eval(item)
             else:
-                print('element', item)
-                try:
-                    lst[i] = float(item)
-                    print('float', item, float(item))
-                except (TypeError, ValueError):
-                    try:
-                        lst[i] = parse_expr(item).evalf()
-                    except (TypeError, ValueError, SyntaxError):
-                        return
+                lst[i] = eval_string(item)
 
-
-    options = {**key_values, **blocks}
     # Keys that should not be interpretted as symbolic
     no_convert={sympy.symbols('no'): 'no'}
 
+    options = {**key_values, **blocks}
 
     for key in options.keys():
         if not isinstance(options[key], list):
-            try:
-                options[key] = float(options[key])
-            except (TypeError, ValueError):
-                try:
-                    # Note, this converts 'no' to a sympy object, which I don't want to do
-                    options[key] = parse_expr(options[key], locals=no_convert).evalf()
-                except (TypeError, ValueError, SyntaxError):
-                    pass
+            options[key] = eval_string(options[key], explicit_def=no_convert)
         else:
             recursive_eval(options[key])
 
