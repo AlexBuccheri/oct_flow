@@ -1,6 +1,6 @@
 import pytest
 
-from src.structure import parse_oct_input_string, parse_oct_input
+from src.structure import parse_oct_input_string, parse_oct_input, evaluate_expressions
 
 
 @pytest.fixture()
@@ -64,5 +64,6 @@ def struct_input() -> str:
 
 def test_parse_oct_input_string(struct_input):
      key_values, blocks = parse_oct_input_string(struct_input)
-     eval_options = parse_oct_input(key_values, blocks)
+     options = parse_oct_input(key_values, blocks)
+     eval_options = evaluate_expressions(options)
      print(eval_options)
