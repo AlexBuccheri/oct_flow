@@ -272,7 +272,7 @@ def parse_oct_structure_to_atoms(options: dict) -> ase.atoms.Atoms:
     return atoms
 
 
-def ase_atoms_to_oct_structure(atoms: ase.atoms.Atoms) -> str:
+def ase_atoms_to_oct_structure(atoms: ase.atoms.Atoms, fractional=True) -> str:
     """ Convert ASE Atoms instance to Octopus input substring for:
     LatticeVectors and Coordinates, noting that LatticeParameters
     are absorbed in the LatticeVectors.
@@ -282,8 +282,25 @@ def ase_atoms_to_oct_structure(atoms: ase.atoms.Atoms) -> str:
     """
     input_string = ""
 
+    # LatticeParameters
+    constants_and_angles = atoms.cell.cellpar()
+    constants = np.asarray(constants_and_angles[0:3]) * ang_to_bohr
+    input_string += "%LatticeParameters\n"
+    input_string += " ".join(f"{constant} |" for constant in constants[0:3])[:-1] + '\n'
+    input_string += "%\n"
+
     # LatticeVectors (row-wise in ASE, and Octopus input)
     lattice = atoms.get_cell().array * ang_to_bohr
+    n_vectors, n_components = len(lattice), len(lattice[0])
+
+    # Define origin before dividing through by lattice constants
+    origin = np.zeros(shape=n_components)
+    for i in range(0, n_vectors):
+        origin[:] += 0.5 * np.asarray(lattice[i, :])
+
+    # Divide lattice vectors by respective parameters
+    lattice = [v / constants[i] for i, v in enumerate(lattice)]
+
     input_string += "%LatticeVectors\n"
     for vector in lattice:
         input_string += " ".join(f"{r:.9f} |" for r in vector)[:-1] + '\n'
@@ -291,7 +308,16 @@ def ase_atoms_to_oct_structure(atoms: ase.atoms.Atoms) -> str:
 
     # Coordinates
     species = atoms.get_chemical_symbols()
-    positions = np.asarray(atoms.get_positions()) * ang_to_bohr
+
+    # Note that in Octopus the origin of coordinates is in the center of the cell,
+    if fractional:
+        # The coordinates inside the cell are in the range [-0.5, 0.5)
+        key = 'ReducedCoordinates'
+        fractional_origin = np.array([0.5, 0.5, 0.5])
+        positions = np.asarray(atoms.get_scaled_positions()) - fractional_origin
+    else:
+        key = 'Coordinates'
+        positions = np.asarray(atoms.get_positions()) * ang_to_bohr - origin
     n_atoms = len(species)
 
     # Pad with trailing whitespace, to achieve alignment when printing
@@ -300,7 +326,7 @@ def ase_atoms_to_oct_structure(atoms: ase.atoms.Atoms) -> str:
     pad = lambda x: " " * (max_len - len(x))
     whitespace = [pad(x) for x in species]
 
-    input_string += "%Coordinates\n"
+    input_string += f"%{key}\n"
     for i in range(0, n_atoms):
         line = f"\"{species[i]}\"{whitespace[i]} | " + " ".join(f"{r:.18e} |" for r in positions[i])[:-1]
         input_string += line + '\n'
@@ -311,7 +337,7 @@ def ase_atoms_to_oct_structure(atoms: ase.atoms.Atoms) -> str:
 
 def write_octopus_input(options: dict) -> str:
     """
-
+    TODO(Alex) Could make this more readable and reduce the loops
     :param options:
     :return:
     """
