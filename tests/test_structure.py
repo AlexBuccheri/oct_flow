@@ -1,7 +1,7 @@
 import pytest
 import sympy
 
-from src.structure import parse_oct_input, evaluate_expressions, parse_oct_structure_to_atoms, \
+from src.oct_ase import parse_oct_input, evaluate_expressions, parse_oct_structure_to_atoms, \
                            ase_atoms_to_oct_structure, write_octopus_input
 
 

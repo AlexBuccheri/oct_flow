@@ -19,6 +19,10 @@ def create_hash(input_string: str):
     return hashed_string
 
 
+def create_hashes(input_strings: List[str]):
+    return [create_hash(input_str) for input_str in input_strings]
+
+
 def generate_config_data(options_dicts: List[dict], inputs: List[str]) -> dict:
     """
 

@@ -34,7 +34,7 @@ import ase
 from ase.build import fcc111, bulk
 from ase.visualize import view
 
-from structure import ase_atoms_to_oct_structure
+from oct_ase import ase_atoms_to_oct_structure
 
 
 def al_bulk_cubic() -> ase.atoms.Atoms:
