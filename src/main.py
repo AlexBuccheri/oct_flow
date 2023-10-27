@@ -34,20 +34,39 @@ import ase
 from ase.build import fcc111, bulk
 from ase.visualize import view
 
-# Bulk Al supercell
-al_bulk = bulk('Al', 'fcc', a=4.04, cubic=True)
-# This gives 256 atoms
-al_supercell = ase.build.make_supercell(al_bulk, [[4, 0, 0], [0, 4, 0], [0, 0, 4]])
+from structure import ase_atoms_to_oct_structure
 
-# Pd(111) slab
-pd_slab = fcc111('Pd', a=2.77, size=(1, 1, 5), periodic=True, vacuum=10)
 
-# 5L-(2 × 2) Au(111) with a vacancy
-gold_slab_with_vacancy = fcc111('Au', a=2.95, size=(1, 1, 5), periodic=True, vacuum=15)
-# Check, what's the difference between using size and expanding using the supercell method
-gold_super_slab = ase.build.make_supercell(gold_slab_with_vacancy, [[2, 0, 0], [0, 2, 0], [0, 0, 1]])
-# Create a vacancy
-del gold_super_slab[4]
+def al_bulk_cubic() -> ase.atoms.Atoms:
+    # Bulk Al supercell
+    al_bulk = bulk('Al', 'fcc', a=4.04, cubic=True)
+    # This gives 256 atoms
+    al_supercell = ase.build.make_supercell(al_bulk, [[4, 0, 0], [0, 4, 0], [0, 0, 4]])
+    return al_supercell
 
-# Visualisation
-# view(al_supercell)
+
+def pd_111_surface():
+    # Pd(111) slab
+    pd_slab = fcc111('Pd', a=2.77, size=(1, 1, 5), periodic=True, vacuum=10)
+    return pd_slab
+
+
+def au_111_surface_w_vacancy():
+    # 5L-(2 × 2) Au(111) with a vacancy
+    gold_slab_with_vacancy = fcc111('Au', a=2.95, size=(1, 1, 5), periodic=True, vacuum=15)
+    # Check, what's the difference between using size and expanding using the supercell method
+    gold_super_slab = ase.build.make_supercell(gold_slab_with_vacancy, [[2, 0, 0], [0, 2, 0], [0, 0, 1]])
+    # Create a vacancy
+    del gold_super_slab[4]
+    return gold_super_slab
+
+
+if __name__ == "__main__":
+    system = {'al_bulk_cubic': al_bulk_cubic,
+              'pd_111_surface': pd_111_surface,
+              'au_111_surface_w_vacancy': au_111_surface_w_vacancy}
+
+    cell = system['al_bulk_cubic']()
+    view(cell)
+    struct_inp = ase_atoms_to_oct_structure(cell)
+    print(struct_inp)
