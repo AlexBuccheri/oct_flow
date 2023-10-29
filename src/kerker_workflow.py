@@ -1,8 +1,9 @@
-"""
-workflow
-TODO(Alex) Workflow should be defined with a plugin system
+""" workflow
 
+TODO(Alex) Generalise this workflow
 """
+from pathlib import Path
+
 from components import (expand_input_dictionary, ase_bulk_structure_constructor, inp_string,
                         directory_generation, slurm_submission_scripts, package_info)
 from metadata import create_hashes
@@ -46,10 +47,25 @@ if __name__ == "__main__":
     from kerker_settings import (matrix, static_options, material_definitions, default_ada_gpu,
                                  kerker_options)
 
-    # Jobs without kerker
-    jobs = ground_state_calculation(matrix, static_options, material_definitions, default_ada_gpu, 'path/2/oct')
-    print(jobs['Al_cubic_111']['inp'])
+    use_kerker = False
+    root = 'no_kerker'
+    oct_root_ada = '/u/abuc/packages/octopus/_build_kerker/installed'
 
-    # Jobs with kerker
-    # jobs = ground_state_calculation(matrix, {**static_options, **kerker_options} , material_definitions, default_ada_gpu, 'path/2/oct')
-    # print(jobs['Al_cubic_111']['inp'])
+    if use_kerker:
+        root = root.split('_')[-1]
+        static_options.update(kerker_options)
+
+    jobs = ground_state_calculation(matrix, static_options, material_definitions, default_ada_gpu, oct_root_ada)
+
+    # Write jobs to file
+    for job in jobs.values():
+        subdir = Path(root, job['directory'])
+        Path.mkdir(subdir, parents=True)
+
+        for file_type, file_name in [('hash', 'metadata.txt'), ('inp', 'inp'), ('submission', 'run.sh')]:
+            with open(subdir / file_name, 'w') as fid:
+                fid.write(job[file_type])
+
+
+
+
