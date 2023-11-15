@@ -1,7 +1,10 @@
-"""
-Settings for Kerker Calculations
+"""Linear Mixing Workflow
 """
 import datetime
+from pathlib import Path
+
+from oct_workflow import ground_state_calculation
+
 
 default_ada_gpu = {'nodes': 1,
                    'ntasks_per_node': 4,
@@ -14,11 +17,7 @@ default_ada_gpu = {'nodes': 1,
                    'mem': '100G',  # Cluster max: 1000G
                    'mail_type': 'none'}
 
-# Looking at the ASE source, if I select cubic, I should be passing the conventional lattice constant
-# in Angstrom
-# Al 4.04 Å https://next-gen.materialsproject.org/materials/mp-134
-# Fe 2.86 Å https://next-gen.materialsproject.org/materials/mp-13
-# Cu 3.58 Å https://next-gen.materialsproject.org/materials/mp-30
+
 specific_options = {'Al_cubic':
                         {'ase_constructor': {'name': 'Al', 'crystalstructure': 'fcc', 'a': 4.04, 'cubic': True},
                          'Species': ['"Al"', 'species_pseudo', 'set', 'hgh_lda']
@@ -49,19 +48,33 @@ static_options = {'CalculationMode': 'gs',
                   # Grid
                   'PeriodicDimensions': 3,
                   'BoxShape': 'parallelepiped',
-                  'Spacing': 0.2
+                  'Spacing': 0.2,
+                  'MixingScheme': 'linear',
+                  # k-points
+                  'KPointsUseSymmetries': 'No',
+                  'KPointsGrid': [2, 2, 2]
                   }
-
-# Kerker mixing
-kerker_options = {'MixField': 'density',
-                  'MixingKerker': 'yes',
-                  'MixingKerkerFactor': '1.0',  # Default
-                  'Mixing': '0.8'}
 
 # Job permutations
 matrix = {'material': ['Al_cubic', 'Fe_cubic', 'Cu_cubic'],
-          'supercell': [[1, 1, 1], [2, 2, 2]]}
+          'supercell': [[1, 1, 1]],
+          'Mixing': [0.3]}
 
 # Meta-keys that should be a. generated for all permutations,  b. be subbed with specific definitions above,
 # c. removed
 meta_keys = ['material']
+
+
+if __name__ == "__main__":
+    root = 'jobs/linear_mixing'
+    oct_root_ada = '/u/abuc/packages/octopus/_build_kerker/installed'
+    jobs = ground_state_calculation(matrix, static_options, specific_options, meta_keys, default_ada_gpu, oct_root_ada)
+
+    # Write jobs to file
+    for job in jobs.values():
+        subdir = Path(root, job['directory'])
+        Path.mkdir(subdir, parents=True, exist_ok=True)
+
+        for file_type, file_name in [('hash', 'metadata.txt'), ('inp', 'inp'), ('submission', 'run.sh')]:
+            with open(subdir / file_name, 'w') as fid:
+                fid.write(job[file_type])

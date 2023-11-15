@@ -67,6 +67,7 @@ def ase_atoms_to_oct_structure(atoms: ase.atoms.Atoms, fractional=True) -> str:
     are absorbed in the LatticeVectors.
 
     :param atoms: Atoms instance.
+    :param fractional:
     :return: input_string: Structure substring
     """
     input_string = ""

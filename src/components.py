@@ -4,6 +4,7 @@ import copy
 from typing import List
 
 import ase
+import numpy as np
 import simple_slurm
 
 from oct_ase import ase_atoms_to_oct_structure
@@ -21,7 +22,37 @@ def expand_input_dictionary(matrix: dict, fixed_settings: dict) -> List[dict]:
     return all_options
 
 
-def ase_bulk_structure_constructor(inputs: List[dict], material_definitions: dict) -> List[ase.atoms.Atoms]:
+def substitute_specific_settings(inputs: List[dict], specific_options: dict, meta_keys: List[str]):
+    """
+
+    :param inputs:
+    :param specific_options:
+    :param meta_keys:
+    :return:
+    """
+    for input in inputs:
+        for id in meta_keys:
+            if id in list(input):
+                input.update(copy.deepcopy(specific_options[input[id]]))
+    return inputs
+
+
+def remove_non_octopus_keys(inputs: List[dict], keys: List[str]) -> List[dict]:
+    """
+
+    :param inputs:
+    :param material_definitions:
+    :return:
+    """
+    modified_inputs = []
+    for input in inputs:
+        for key in keys:
+            del input[key]
+        modified_inputs.append(input)
+    return modified_inputs
+
+
+def ase_bulk_structure_constructor(inputs: List[dict]) -> List[ase.atoms.Atoms]:
     """ Given ASE Atom settings, return a list of Atom instances.
 
     TODO. Consider splitting loop from single use of constructor
@@ -33,10 +64,9 @@ def ase_bulk_structure_constructor(inputs: List[dict], material_definitions: dic
     from ase.build import bulk
     ase_inputs = []
     for system in inputs:
-        key = system.pop('material')
 
         # Bulk cell
-        struct_settings = copy.deepcopy(material_definitions[key])
+        struct_settings = system.pop('ase_constructor')
         name = struct_settings.pop('name')
         ase_unit_cell = bulk(name, **struct_settings)
 
@@ -90,9 +120,9 @@ def directory_generation(matrix: dict, prefix='', suffix='') -> List[str]:
             if isinstance(value, float):
                 id += str(value) + '_'
             if isinstance(value, list):
-                id += "".join(str(s) for s in value)
+                id += "".join(str(s) for s in value) + '_'
 
-        if id[:-1] == '_':
+        if id[-1] == '_':
             id = id[:-1]
         id = f"{prefix}{id}{suffix}"
         ids.append(id)
@@ -128,7 +158,8 @@ def package_info(job_ids: List[str],
                  directories: List[str],
                  inputs: List[str],
                  sub_scripts: List[str],
-                 hashes: List[str]) -> dict:
+                 hashes: List[str],
+                 structures=None) -> dict:
     """
 
     :param job_ids:
@@ -144,6 +175,37 @@ def package_info(job_ids: List[str],
         jobs[id] = {'directory': directories[i],
                     'inp': inputs[i],
                     'submission': sub_scripts[i],
-                    'hash': hashes[i]}
+                    'hash': hashes[i],
+                    'structure': structures[i]}
 
     return jobs
+
+
+def write_extended_xyz(xyz_file, atoms: ase.atoms.Atoms):
+    """
+    NOTE ALEX. This ref format does not appear to get picked up by vesta
+    https://open-babel.readthedocs.io/en/latest/FileFormats/Extended_XYZ_cartesian_coordinates_format.html
+
+    :param xyz_file:
+    :param atoms:
+    :return:
+    """
+    with open(xyz_file, 'w') as f:
+        f.write(f"{len(atoms)}\n")
+        f.write('%PBC\n')
+
+        for symbol, position in zip(atoms.get_chemical_symbols(), atoms.get_positions()):
+            f.write(f"{symbol} {position[0]:.6f} {position[1]:.6f} {position[2]:.6f}\n")
+
+        f.write('\n')
+        lattice = atoms.get_cell().array
+        n_vectors, n_components = len(lattice), len(lattice[0])
+
+        for i in range(n_vectors):
+            f.write(f'Vector{i + 1}   ' + " ".join(f"{r:.9f}" for r in lattice[i, :]) + '\n')
+
+        origin = np.zeros(shape=n_components)
+        f.write(f'Offset    ' + " ".join(f"{r:.9f}" for r in origin))
+
+
+
