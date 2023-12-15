@@ -1,13 +1,24 @@
 # Makefile for Octopus workflows Package
 
+# Specify path to virtual environment to use for this project
+VENV_PATH := venv
+
+# Ensures all commands for a given target are run in the same shell
+# Necessary for running installations in the specified venv
+.ONESHELL:
+
+.PHONY: install install-dev clean
+
 # Production installation
 install:
+	. $(VENV_PATH)/bin/activate
 	python -m pip install --upgrade pip
 	python -m pip install .
 
 # Development installation
 # Install dependencies specified in .dev of pyproject.toml
 install-dev: pyproject.toml
+	. $(VENV_PATH)/bin/activate
 	python -m pip install --upgrade pip
 	python -m pip install -e ".[dev]"
 
