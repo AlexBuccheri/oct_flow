@@ -8,7 +8,7 @@ name = "octopus-workflows"
 version = "0.0.1"
 authors = [{name = "Alex Buccheri"}]
 readme = "README.md"
-requires-python = ">=3.9"  # Can't force higher python versions due to ASE
+requires-python = ">=3.10"
 # Pinned project dependencies
 # requirements.txt generated from here
 dependencies = [
@@ -19,8 +19,6 @@ dependencies = [
   "simple-slurm>=0.2.6",
   "sympy==1.12"
 ]
-# Pin versions
-# TODO: Add simple slurm - pypi has a different name
 
 # TO ADD
 [project.urls]
