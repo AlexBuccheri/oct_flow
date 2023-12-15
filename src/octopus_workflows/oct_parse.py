@@ -78,15 +78,10 @@ def parse_oct_input_string(input: str) -> Tuple[dict, dict]:
     """
     key_values = parse_key_value_pairs(input)
 
-    blocks = {}
-    for key in [
-        "LatticeVectors",
-        "LatticeParameters",
-        "Spacing",
-        "KPointsGrid",
-        "Coordinates",
-    ]:
-        blocks[key] = parse_block(input, key)
+    # Definition of a block
+    # match % followed by one or more word characters (letters, digits, or underscores)
+    block_keys = re.findall(r'%(\w+)', input)
+    blocks = {key:parse_block(input, key) for key in block_keys}
 
     # Clean up species quotations
     coordinates = []
@@ -178,6 +173,9 @@ def evaluate_strings(options: dict) -> dict:
 
 def parse_oct_input(input: str, do_substitutions=True) -> dict:
     """Top level parser routine for Octopus input file.
+
+    Note, [units](https://www.octopus-code.org/documentation/13/variables/execution/units/units/)
+    won't get substituted. For example 'Spacing': '0.2*angstrom' where angstrom is the unit.
 
     :param input:
     :param do_substitutions: Substitute variable definitions in strings
