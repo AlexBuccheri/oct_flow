@@ -2,13 +2,13 @@
 
 """
 import re
-from typing import Tuple, List
+from typing import List, Tuple
 
 from sympy.parsing.sympy_parser import parse_expr
 
 
-def parse_key_value_pairs(input:str) -> dict:
-    """ Parse key-value blocks from Octopus input files.
+def parse_key_value_pairs(input: str) -> dict:
+    """Parse key-value blocks from Octopus input files.
 
     Key-values are defined as key = value.
 
@@ -19,7 +19,7 @@ def parse_key_value_pairs(input:str) -> dict:
     input_dict = {}
 
     # Grab all key = value instances
-    pattern = r'([^=]+)=(.+)'
+    pattern = r"([^=]+)=(.+)"
 
     # Search for the substring
     matches = re.findall(pattern, input)
@@ -32,7 +32,7 @@ def parse_key_value_pairs(input:str) -> dict:
 
 
 def parse_block(input: str, key: str) -> list:
-    """ Parse a block from an Octopus input file string.
+    """Parse a block from an Octopus input file string.
 
     Blocks are defined as:
 
@@ -50,19 +50,19 @@ def parse_block(input: str, key: str) -> list:
      a line of the parsed block. BLock lines returned as strings.
     """
     block = []
-    match = re.search(rf'%{key}(.*?)%', input, re.DOTALL)
+    match = re.search(rf"%{key}(.*?)%", input, re.DOTALL)
     if match:
         # Strip whitespace and split w.r.t. line breaks
-        string = match.group(1).strip().replace(" ", "").split('\n')
+        string = match.group(1).strip().replace(" ", "").split("\n")
 
         # Single line blocks
         if len(string) == 1:
-            return [i for i in string[0].split('|')]
+            return [i for i in string[0].split("|")]
 
         # Multi-line blocks
         else:
             for line in string:
-                block.append([i for i in line.split('|')])
+                block.append([i for i in line.split("|")])
 
     return block
 
@@ -79,14 +79,20 @@ def parse_oct_input_string(input: str) -> Tuple[dict, dict]:
     key_values = parse_key_value_pairs(input)
 
     blocks = {}
-    for key in ['LatticeVectors', 'LatticeParameters', 'Spacing', 'KPointsGrid', 'Coordinates']:
+    for key in [
+        "LatticeVectors",
+        "LatticeParameters",
+        "Spacing",
+        "KPointsGrid",
+        "Coordinates",
+    ]:
         blocks[key] = parse_block(input, key)
 
     # Clean up species quotations
     coordinates = []
-    for entry in blocks['Coordinates']:
-        coordinates.append([x.replace("\"", '') for x in entry])
-    blocks['Coordinates'] = coordinates
+    for entry in blocks["Coordinates"]:
+        coordinates.append([x.replace('"', "") for x in entry])
+    blocks["Coordinates"] = coordinates
 
     return key_values, blocks
 
@@ -101,22 +107,23 @@ def parse_oct_dict_to_values(key_values: dict, blocks: dict) -> dict:
     :param options:
     :return:
     """
+
     # Function to recursively apply re.sub for all elements of lists/nested lists
     # Will not work for non-lists (silently gives wrong result), hence try/except
     # block in body of `parse_oct_dict_to_values` double-loop
     def recursive_modify(lst, key: str, replace_val):
         for i, item in enumerate(lst):
             if isinstance(item, list):
-                recursive_modify(item, key,replace_val)
+                recursive_modify(item, key, replace_val)
             else:
-                lst[i] = re.sub(rf'{key}', replace_val, item)
+                lst[i] = re.sub(rf"{key}", replace_val, item)
 
     # key-values from input
     for key, var_val in key_values.items():
         # blocks, which should not define variables, only use variables
         for key2, block_val in blocks.items():
             if not isinstance(block_val, list):
-                blocks[key2] = re.sub(rf'{key}', var_val, block_val)
+                blocks[key2] = re.sub(rf"{key}", var_val, block_val)
             else:
                 recursive_modify(block_val, key, var_val)
 
@@ -147,6 +154,7 @@ def evaluate_strings(options: dict) -> dict:
     :param options:
     :return:
     """
+
     # Function to recursively apply eval_string for all elements of lists/nested lists
     # Will not work for non-lists (silently gives wrong result)
     def recursive_eval(lst):
@@ -169,7 +177,7 @@ def evaluate_strings(options: dict) -> dict:
 
 
 def parse_oct_input(input: str, do_substitutions=True) -> dict:
-    """ Top level parser routine for Ocotpus input file.
+    """Top level parser routine for Octopus input file.
 
     :param input:
     :param do_substitutions: Substitute variable definitions in strings
@@ -185,7 +193,9 @@ def parse_oct_input(input: str, do_substitutions=True) -> dict:
         return {**key_values, **blocks}
 
 
-def evaluate_expressions(options: dict, keys: str | List[str], expressions: dict) -> dict:
+def evaluate_expressions(
+    options: dict, keys: str | List[str], expressions: dict
+) -> dict:
     """
 
     :param options:
@@ -193,6 +203,7 @@ def evaluate_expressions(options: dict, keys: str | List[str], expressions: dict
     :param expressions:
     :return:
     """
+
     def recursive_eval(lst, local_dict):
         for i, item in enumerate(lst):
             if isinstance(item, list):
@@ -208,9 +219,10 @@ def evaluate_expressions(options: dict, keys: str | List[str], expressions: dict
 
     for key in keys:
         if isinstance(options[key], list):
-            recursive_eval(options[key],expressions)
+            recursive_eval(options[key], expressions)
         else:
-            options[key] = parse_expr(options[key], local_dict=expressions).evalf()
+            options[key] = parse_expr(
+                options[key], local_dict=expressions
+            ).evalf()
 
     return options
-

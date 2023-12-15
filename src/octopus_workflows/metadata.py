@@ -5,15 +5,17 @@ from typing import List
 
 
 def create_hash(input_string: str):
-    """ Generate a unique hash from any input file string.
+    """Generate a unique hash from any input file string.
 
     :param input_string:
     :return:
     """
     # Strip all whitespace and terminating characters from the string
-    stripped_input = input_string.replace('\t', '').replace('\n', '').replace(' ', '')
+    stripped_input = (
+        input_string.replace("\t", "").replace("\n", "").replace(" ", "")
+    )
     sha256_hash = hashlib.sha256()
-    sha256_hash.update(stripped_input.encode('utf-8'))
+    sha256_hash.update(stripped_input.encode("utf-8"))
     # hexadecimal representation of the hash value
     hashed_string = sha256_hash.hexdigest()
     return hashed_string
@@ -53,6 +55,6 @@ def generate_config_data(options_dicts: List[dict], inputs: List[str]) -> dict:
 
     for i, options in enumerate(options_dicts):
         config[i] = options
-        config[i].update({'input_hash': create_hash(inputs[i])})
+        config[i].update({"input_hash": create_hash(inputs[i])})
 
     return config

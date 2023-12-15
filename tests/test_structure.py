@@ -1,8 +1,12 @@
 import pytest
 import sympy
-
-from src.oct_ase import parse_oct_input, evaluate_expressions, parse_oct_structure_to_atoms, \
-                           ase_atoms_to_oct_structure, write_octopus_input
+from src.oct_ase import (
+    ase_atoms_to_oct_structure,
+    evaluate_expressions,
+    parse_oct_input,
+    parse_oct_structure_to_atoms,
+    write_octopus_input,
+)
 
 
 @pytest.fixture()
