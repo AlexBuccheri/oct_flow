@@ -2,6 +2,7 @@
 
 Once working, move out the functions
 """
+import copy
 from typing import Callable, Dict, List
 
 from octopus_workflows.components import expand_input_dictionary
@@ -18,9 +19,10 @@ def substitute_specific_settings(inputs: List[dict], meta_value_ops: Dict[str, C
         meta_keys = [key for key in input if key.startswith(meta_key)]
         for key in meta_keys:
             operation = meta_value_ops[key]
-
-            print(operation(input[key]))
-
+            placeholder = input[key]
+            actual_key_value: dict = operation(placeholder)
+            input.pop(key)
+            input.update(copy.deepcopy(actual_key_value))
     return inputs
 
 
@@ -41,6 +43,7 @@ def ground_state_calculation(matrix: dict,
 
     # Substitute specific settings
     inputs = substitute_specific_settings(inputs, meta_value_ops, meta_key)
+    print(inputs[0])
 
     # Remove keys used for constructors
     # Should just have a list of Octopus keys, and remove anything not in that list
