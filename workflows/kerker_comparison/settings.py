@@ -1,19 +1,17 @@
 """ Settings
-
-TODO(Alex)
-Need some exception behaviour where for specific systems, the workflow copies the pseudos
-
-* Given the final processed input dict - specific some info in that one can identify the system from
-* OR define the behaviour for unique job ids
-
 """
+import re
+
 from octopus_workflows.oct_parse import parse_oct_input
 
 
 def file_to_oct_dict(file) -> dict:
     """ Convert a file string to Octopus inputs
     Always has to return a dict with a valid key:value
+
     No subs are done, as we do not manipulate the input files (and it's not reliable due to the regex)
+    This means an entry like ""O" | u | u | 0.0" will be stored as a string, and never converted
+    to/from floats. This is fine, as the workflow does no manipulation of atomic positions.
     :return:
     """
     with open(file, mode='r') as fid:
@@ -47,28 +45,21 @@ benchmark_root = "/Users/alexanderbuccheri/Codes/cell_building/data/benchmark_st
 
 # Job permutations.
 matrix = {'^system_files': [benchmark_root + 'TiO2'],
-          'MixingScheme': ['linear', 'broyden']}
+          'MixingScheme': ['linear']}   #broyden
 
-# If input matches x , i.e. species_pseudo has a file section that contains "*.UPF", easy - regex the final string
-# copy from benchmark_root/*.UPF to destination/*.UPF
-# Ah, a better thing would be if input matches, create an addition to the depends-on field:
-# {'depends-on': {'source': 'path/2/source', 'destination': 'path/2/copy/location'}
-# Then handle depends-on in main.py. Should supply a function that actually handles the jobs dict container
-def find_pseudopotential():
+
+def find_pseudopotential(input_string: str) -> dict:
+    """ For input strings that depend on .UPF,
+    return the specific .UPF locations.
+
+    Function must define location of existing files
     """
-    Given a species block like:
-    "Ti" | species_pseudo | file | "Ti.UPF" | hubbard_l | 2 | hubbard_u | 0.0
-    stored as
-    [['"Ti"', 'species_pseudo', 'file', '"Ti.UPF"', 'hubbard_l', '2', 'hubbard_u', '0.0'],
-    ['"O"', 'species_pseudo', 'file', '"O.UPF"', 'hubbard_l', '1', 'hubbard_u', '0.0']]
-
-    Note where the UPF files are and where to copy them to
-    :return:
+    location = {'Ti.UPF': "data/benchmark_structures/Ti.UPF",
+                "O.UPF": "data/benchmark_structures/O.UPF"
+                }
+    pattern = re.compile(r'"([^"]+\.UPF)"')
+    files = pattern.findall(input_string)
+    return {f: location[f] for f in files}
 
 
-    Actually looks like this whole parsing of species, reduced ordinates etc
-    """
-
-    pass
-
-file_rules = {'upf': find_pseudopotential()}
+file_rules = [find_pseudopotential]

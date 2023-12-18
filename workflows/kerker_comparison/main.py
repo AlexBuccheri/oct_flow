@@ -8,8 +8,9 @@
 """
 import datetime
 from pathlib import Path
+from typing import List, Dict
 
-from octopus_workflows.simple_oct_workflow import ground_state_calculation
+from octopus_workflows.simple_oct_workflow import ground_state_calculation, OctopusJob
 
 # Job root
 root = Path('jobs/kerker_comparison')
@@ -20,8 +21,10 @@ def no_kerker_jobs() -> dict:
     No preconditioning
     :return:
     """
-    from settings import fixed_options, matrix, meta_key, meta_value_ops
+    from settings import fixed_options, matrix, meta_value_ops, file_rules
+
     oct_root_ada = '/u/abuc/packages/octopus/_build_main/installed'
+
     default_ada_gpu = {'nodes': 1,
                        'ntasks_per_node': 4,
                        'cpus_per_task': 18,
@@ -32,7 +35,14 @@ def no_kerker_jobs() -> dict:
                        'time': datetime.timedelta(days=0, hours=4, minutes=0, seconds=0),
                        'mem': '100G',  # Cluster max: 1000G
                        'mail_type': 'none'}
-    return ground_state_calculation(matrix, fixed_options, meta_key, meta_value_ops, default_ada_gpu, oct_root_ada)
+
+    return ground_state_calculation(matrix,
+                                    fixed_options,
+                                    meta_value_ops=meta_value_ops,
+                                    file_rules=file_rules,
+                                    slurm_settings=default_ada_gpu,
+                                    binary_path=oct_root_ada
+                                    )
 
 
 def kerker_jobs() -> dict:
@@ -44,6 +54,7 @@ def kerker_jobs() -> dict:
     return {}
 
 
-jobs = no_kerker_jobs()
-# for job in jobs.values():
-#     print(job['inp'])
+jobs: Dict[str, OctopusJob] = no_kerker_jobs()
+for job in jobs.values():
+    print(job.inp)
+    # job.write(root='jobs', exist_ok=True)
