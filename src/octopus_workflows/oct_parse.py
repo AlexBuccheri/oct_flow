@@ -21,7 +21,7 @@ def parse_key_value_pairs(input: str) -> dict:
     input_dict = {}
 
     # Grab all key = value instances
-    pattern = r"([^=]+)=(.+)"
+    pattern = r'(\S+)\s*=\s*(.+)'
 
     # Search for the substring
     matches = re.findall(pattern, input)
@@ -69,21 +69,15 @@ def parse_block(input: str, key: str) -> list:
     return block
 
 
-def parse_oct_input_string(input: str) -> Tuple[dict, dict]:
+def parse_blocks(input: str):
     """
 
-    This returns the input file options as strings, having not
-    done any recursive substitution on them
-
-    :param input:
     :return:
     """
-    key_values = parse_key_value_pairs(input)
-
     # Definition of a block
     # match % followed by one or more word characters (letters, digits, or underscores)
     block_keys = re.findall(r'%(\w+)', input)
-    blocks = {key:parse_block(input, key) for key in block_keys}
+    blocks = {key: parse_block(input, key) for key in block_keys}
 
     valid_coord_keys = {'ReducedCoordinates', 'Coordinates'}
     coord_keys = set(block_keys).intersection(valid_coord_keys)
@@ -96,6 +90,20 @@ def parse_oct_input_string(input: str) -> Tuple[dict, dict]:
         coordinates.append([x.replace('"', "") for x in entry])
     blocks[coord_key] = coordinates
 
+    return blocks
+
+
+def parse_oct_input_string(input: str) -> Tuple[dict, dict]:
+    """
+
+    This returns the input file options as strings, having not
+    done any recursive substitution on them
+
+    :param input:
+    :return:
+    """
+    key_values = parse_key_value_pairs(input)
+    blocks = parse_blocks(input)
     return key_values, blocks
 
 
@@ -109,6 +117,7 @@ def parse_oct_dict_to_values(key_values: dict, blocks: dict) -> dict:
     :param options:
     :return:
     """
+
     # Function to recursively apply re.sub for all elements of lists/nested lists
     # Will not work for non-lists (silently gives wrong result), hence try/except
     # block in body of `parse_oct_dict_to_values` double-loop
@@ -194,6 +203,7 @@ def parse_oct_input(input: str, do_substitutions=True) -> dict:
     :return:
     """
     key_values, blocks = parse_oct_input_string(input)
+
     if do_substitutions:
         options = parse_oct_dict_to_values(key_values, blocks)
     else:
@@ -202,7 +212,7 @@ def parse_oct_input(input: str, do_substitutions=True) -> dict:
 
 
 def evaluate_expressions(
-    options: dict, keys: str | List[str], expressions: dict
+        options: dict, keys: str | List[str], expressions: dict
 ) -> dict:
     """
 

@@ -1,6 +1,38 @@
 import pytest
 
-from src.octopus_workflows.oct_parse import parse_oct_input, parse_oct_input_string
+from src.octopus_workflows.oct_parse import parse_key_value_pairs, parse_oct_input, parse_oct_input_string
+
+
+@pytest.fixture()
+def inp_file_with_species() -> str:
+    string = """
+    PeriodicDimensions = 3
+    BoxShape = parallelepiped
+    XCFunctional = gga_x_pbe + gga_c_pbe
+    aCell = 4.594*Angstrom
+    Spacing = 0.3
+    SpinComponents = polarized
+    %Species
+    "Ti" | species_pseudo | file | "Ti.UPF" | hubbard_l | 2 | hubbard_u | 0.0
+    "O" | species_pseudo | file | "O.UPF" | hubbard_l | 1 | hubbard_u | 0.0
+    %
+    #ParKPoints = 8
+    """
+    return string
+
+
+def test_parse_key_value_pairs(inp_file_with_species):
+
+    ref_key_values = {'PeriodicDimensions': '3',
+                      'BoxShape': 'parallelepiped',
+                      'XCFunctional': 'gga_x_pbe + gga_c_pbe',
+                      'aCell': '4.594*Angstrom',
+                      'Spacing': '0.3',
+                      'SpinComponents': 'polarized',
+                      '#ParKPoints': '8'
+                      }
+    key_values = parse_key_value_pairs(inp_file_with_species)
+    assert key_values == ref_key_values
 
 
 @pytest.fixture()
