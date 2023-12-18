@@ -113,9 +113,9 @@ def ase_bulk_structure_constructor(
     return ase_inputs
 
 
-def inp_string(
-    inputs: List[dict], ase_inputs: List[ase.atoms.Atoms] = None
-) -> List[str]:
+def inp_string(inputs: List[dict],
+               ase_inputs: List[ase.atoms.Atoms] = None
+               ) -> List[str]:
     """Generate a list of Octopus input strings
 
     :param input:
@@ -202,8 +202,7 @@ def package_info(
     inputs: List[str],
     sub_scripts: List[str],
     hashes: List[str],
-    structures=None,
-) -> dict:
+    structures=None) -> dict:
     """
 
     :param job_ids:
