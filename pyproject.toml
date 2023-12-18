@@ -8,7 +8,7 @@ name = "octopus-workflows"
 version = "0.0.1"
 authors = [{name = "Alex Buccheri"}]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 # Pinned project dependencies
 # requirements.txt generated from here
 dependencies = [
