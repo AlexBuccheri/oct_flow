@@ -1,4 +1,6 @@
 """ Settings
+
+Configuration file in python rather than YAML or TOML, much like the NOX package approach
 """
 import re
 
@@ -43,9 +45,18 @@ meta_key = "^"
 meta_value_ops = {'^system_files': file_to_oct_dict}
 benchmark_root = "/Users/alexanderbuccheri/Codes/cell_building/data/benchmark_structures/"
 
+
 # Job permutations.
-matrix = {'^system_files': [benchmark_root + 'TiO2'],
-          'MixingScheme': ['linear']}   #broyden
+matrix = {'^system_files': ["1ALA", "2ALA", "2Dharmonic", "3ALA", "4ALA", "ASC", "Cr3", "Fe_cubic",
+                            "Fe_primitive", "N_GNF", "NiO", "Si", "Si001_1x1_2H", "TiO2",
+                            "WSe2", "benzene", "beta-cyclodextrin", "betaine", "methane", "oxyluciferin",
+                            "polyFePc", "tetraazacubane"]
+,
+          'MixingScheme': ['linear', 'broyden']
+          }
+
+# Prepend with benchmark root
+matrix['^system_files'] = [benchmark_root + name for name in matrix['^system_files']]
 
 
 def find_pseudopotential(input_string: str) -> dict:
@@ -55,7 +66,8 @@ def find_pseudopotential(input_string: str) -> dict:
     Function must define location of existing files
     """
     location = {'Ti.UPF': "data/benchmark_structures/Ti.UPF",
-                "O.UPF": "data/benchmark_structures/O.UPF"
+                "O.UPF": "data/benchmark_structures/O.UPF",
+                "Cr.UPF": "data/benchmark_structures/Cr.UPF"
                 }
     pattern = re.compile(r'"([^"]+\.UPF)"')
     files = pattern.findall(input_string)
