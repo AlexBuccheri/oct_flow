@@ -1,6 +1,7 @@
 """ Units or components of work that are composed to form a workflow
 """
 import copy
+import os
 from typing import List, Callable
 
 import ase
@@ -144,11 +145,16 @@ def directory_generation(matrix: dict, prefix="", suffix="") -> List[str]:
     :param suffix:
     :return:
     """
-    options = cartesian_product(matrix)
     if prefix != "":
         prefix += "_"
     if suffix != "":
         suffix = f"_{suffix}"
+
+    # Bit of a hack. If a directory defines a matrix value, then just take the basename
+    mat = {}
+    for key, value in matrix.items():
+        mat[key] = [os.path.basename(x) for x in value]
+    options = cartesian_product(mat)
 
     ids = []
     for opt in options:
@@ -195,35 +201,35 @@ def slurm_submission_scripts(oct_root: str, options: dict, job_ids: List[str]):
         for id in job_ids
     ]
 
-
-def package_info(
-    job_ids: List[str],
-    directories: List[str],
-    inputs: List[str],
-    sub_scripts: List[str],
-    hashes: List[str],
-    structures=None) -> dict:
-    """
-
-    :param job_ids:
-    :param directories:
-    :param inputs:
-    :param sub_scripts:
-    :param hashes:
-    :return:
-    """
-    jobs = {}
-    for i in range(0, len(job_ids)):
-        id = job_ids[i]
-        jobs[id] = {
-            "directory": directories[i],
-            "inp": inputs[i],
-            "submission": sub_scripts[i],
-            "hash": hashes[i],
-            "structure": structures[i],
-        }
-
-    return jobs
+# TODO(Alex) Delete
+# def package_info(
+#     job_ids: List[str],
+#     directories: List[str],
+#     inputs: List[str],
+#     sub_scripts: List[str],
+#     hashes: List[str],
+#     structures=None) -> dict:
+#     """
+#
+#     :param job_ids:
+#     :param directories:
+#     :param inputs:
+#     :param sub_scripts:
+#     :param hashes:
+#     :return:
+#     """
+#     jobs = {}
+#     for i in range(0, len(job_ids)):
+#         id = job_ids[i]
+#         jobs[id] = {
+#             "directory": directories[i],
+#             "inp": inputs[i],
+#             "submission": sub_scripts[i],
+#             "hash": hashes[i],
+#             "structure": structures[i],
+#         }
+#
+#     return jobs
 
 
 def set_job_file_dependencies(inp_string, destination, file_rules: List[Callable]) -> dict:
