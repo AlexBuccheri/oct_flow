@@ -1,7 +1,7 @@
 """ Units or components of work that are composed to form a workflow
 """
 import copy
-from typing import List
+from typing import List, Callable
 
 import ase
 import numpy as np
@@ -226,36 +226,17 @@ def package_info(
     return jobs
 
 
-def write_extended_xyz(xyz_file, atoms: ase.atoms.Atoms):
+def set_job_file_dependencies(inp_string, destination, file_rules: List[Callable]) -> dict:
     """
-    NOTE ALEX. This ref format does not appear to get picked up by vesta
-    https://open-babel.readthedocs.io/en/latest/FileFormats/Extended_XYZ_cartesian_coordinates_format.html
-
-    :param xyz_file:
-    :param atoms:
+    Evaluate rule/s to find file dependencies for a job
+    :param file_rules: Should return a dict of file_name:source/file_name for as many files
+    as matched
     :return:
     """
-    with open(xyz_file, "w") as f:
-        f.write(f"{len(atoms)}\n")
-        f.write("%PBC\n")
-
-        for symbol, position in zip(
-            atoms.get_chemical_symbols(), atoms.get_positions()
-        ):
-            f.write(
-                f"{symbol} {position[0]:.6f} {position[1]:.6f} {position[2]:.6f}\n"
-            )
-
-        f.write("\n")
-        lattice = atoms.get_cell().array
-        n_vectors, n_components = len(lattice), len(lattice[0])
-
-        for i in range(n_vectors):
-            f.write(
-                f"Vector{i + 1}   "
-                + " ".join(f"{r:.9f}" for r in lattice[i, :])
-                + "\n"
-            )
-
-        origin = np.zeros(shape=n_components)
-        f.write("Offset    " + " ".join(f"{r:.9f}" for r in origin))
+    all_files = {}
+    for rule in file_rules:
+        matched_files: dict = rule(inp_string)
+        matched_files_sd = {name: {'source': source, 'dest': f'{destination}/{name}'}
+                            for name, source in matched_files.items()}
+        all_files.update(matched_files_sd)
+    return all_files
