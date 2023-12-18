@@ -1,0 +1,8 @@
+CalculationMode = gs
+ExperimentalFeatures = yes
+ProfilingMode = prof_time
+MaximumIter = 200
+RestartWrite = no
+ExtraStatesInPercent=25
+
+include $system.inc

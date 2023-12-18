@@ -1,0 +1,9 @@
+Dimensions = 2
+Radius = 10
+Spacing = 0.25
+%Species
+"HO" | species_user_defined | potential_formula | "0.5*(x^2 + y^2)" | valence | 6
+%
+%Coordinates
+"HO" | 0 | 0
+%

@@ -1,0 +1,17 @@
+Spacing = 0.26
+BoxShape = minimum
+Radius = 8.0
+SpinComponents = non_collinear
+XCFunctional = lda_x + lda_c_pw
+GuessMagnetDensity = user_defined
+PseudopotentialSet = pseudodojo_lda
+%AtomsMagnetDirection
+-4.0 | -4.0 | 0.0
+4.0 | -4.0 | 0.0
+0.0 | 5.65 | 0.0
+%
+%Coordinates
+"Cr" | -1.665 | -1.2326 | 0.000
+"Cr" | 1.665 | -1.2326 | 0.000
+"Cr" | 0.000 | 2.071600289631 | 0.000
+%

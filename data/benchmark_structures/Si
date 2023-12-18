@@ -1,0 +1,26 @@
+PeriodicDimensions = 3
+a = 10.26
+BoxShape = parallelepiped
+Lsize = a/2
+%LatticeParameters
+a | a | a
+%
+FilterPotentials = filter_none
+Spacing = 10.26/20.1
+KPointsUseSymmetries = no
+SymmetrizeDensity = no
+%ReducedCoordinates
+"Si" | 0.0 | 0.0 | 0.0
+"Si" | 1/2 | 1/2 | 0.0
+"Si" | 1/2 | 0.0 | 1/2
+"Si" | 0.0 | 1/2 | 1/2
+"Si" | 1/4 | 1/4 | 1/4
+"Si" | 3/4 | 3/4 | 1/4
+"Si" | 3/4 | 1/4 | 3/4
+"Si" | 1/4 | 3/4 | 3/4
+%
+%KPointsGrid
+2 | 2 | 2
+1/2 | 1/2 | 1/2
+%
+#ParKPoints = 40

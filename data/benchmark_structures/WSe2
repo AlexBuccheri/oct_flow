@@ -1,0 +1,37 @@
+BoxShape = parallelepiped
+PeriodicDimensions = 2
+Spacing = 0.3
+a = 6.202080695
+Lmin = 20
+Labs = 40
+LL = Lmin + Labs
+%Species
+"W" | species_pseudo | set | hgh_lda_sc
+"Se" | species_pseudo | set | hgh_lda
+%
+dz = 3.119293972
+zL = dz/(2*LL)
+SpinComponents = spinors
+RelativisticCorrection = spin_orbit
+KPointsUseSymmetries = no
+SymmetrizeDensity = yes
+%LatticeParameters
+a | a | LL*2
+%
+%LatticeVectors
+1 | 0 | 0.
+-1/2 | sqrt(3)/2 | 0.
+0. | 0. | 1.
+%
+%ReducedCoordinates
+"W" | 0. | 0. | 0.
+"Se" | 1/3 | 2/3 | zL
+"Se" | 1/3 | 2/3 | -zL
+%
+%KPointsGrid
+2 | 2 | 1
+%
+#ParKPoints = 4
+%SymmetryBreakDir
+1 | 0 | 0
+%

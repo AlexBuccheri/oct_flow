@@ -1,0 +1,33 @@
+PeriodicDimensions = 3
+BoxShape = parallelepiped
+ExperimentalFeatures = yes
+Smearing = 0.01
+SmearingFunction = fermi_dirac
+%Species
+"Fe" | species_pseudo | set | hgh_lda_sc
+%
+a = 5.42
+%LatticeParameters
+a | a | a
+%
+%LatticeVectors
+-0.5 | 0.5 | 0.5
+0.5 | -0.5 | 0.5
+0.5 | 0.5 | -0.5
+%
+XCFunctional = lda_x + lda_c_pw
+%ReducedCoordinates
+"Fe" | 0.0 | 0.0 | 0.0
+%
+Spacing = 0.2
+CurrentDensity = gradient_corrected
+SpinComponents = polarized
+GuessMagnetDensity = user_defined
+%AtomsMagnetDirection
+8.0
+%
+%KPointsGrid
+2 | 2 | 2
+%
+#ParKPoints = 8
+KPointsUseSymmetries = no
