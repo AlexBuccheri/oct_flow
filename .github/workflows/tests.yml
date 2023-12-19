@@ -1,4 +1,6 @@
-# TODOs: Extend to TOX. Extend to mac os
+# TODOs:
+# * Extend to TOX.
+# * Extend to mac os
 name: Run formatting and unit tests
 
 on:
@@ -28,12 +30,15 @@ jobs:
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
 
+      # Can't use make command as it assumes a venv path - reconcile this
       - name: Install dependencies
-        run: make install-dev
+        run: |
+          	python -m pip install --upgrade pip setuptools wheel
+	        python -m pip install -e ".[dev]"
 
       - name: Check formatting
         run: make check-format
 
-      # Sets low code cov from error to warning
+      # --cov-fail-under=-1 sets low code coverage from error to warning
       - name: Run unit tests with code cov
         run: pytest --junitxml=junit/test-results.xml --cov=src/ --cov-report=xml --cov-report=html --cov-fail-under=-1
