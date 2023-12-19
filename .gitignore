@@ -2,3 +2,6 @@ venv/
 .tox/
 build/
 .idea/
+to_sort/
+junit/
+.coverage
