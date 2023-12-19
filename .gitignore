@@ -6,3 +6,5 @@ to_sort/
 junit/
 htmlcov/
 .coverage
+docs/source/modules.rst
+docs/source/octopus_workflows.rst

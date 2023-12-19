@@ -62,6 +62,23 @@ If a specific toc venv fails, one can switch to it:
 source .tox/py39/bin/activate
 ```
 
+## Viewing Documentation
+
+The sphinx documentation is built with:
+
+```shell
+make doc
+```
+
+and cleaned with:
+
+```shell
+make clean-doc
+```
+
+Once built, documentation can be viewed via [docs/build/html/index.html](docs/build/html/index.html)
+
+
 ## Using the Workflows
 
 **Add me**

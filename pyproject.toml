@@ -36,6 +36,8 @@ dev = [
   "pip-tools>=6.10.0",
   "pytest>=7.2.0",
   "pytest-cov>=4.0.0",
+  "sphinx>=7.2.6",
+  "sphinx-rtd-theme==2.0.0",
   "tox>=4.11.4"
 ]
 
@@ -84,5 +86,3 @@ addopts = "-v --doctest-modules"
 testpaths = [
     "tests",
 ]
-
-#

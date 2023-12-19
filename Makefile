@@ -27,10 +27,21 @@ build:
 	python -m pip install build
 	python -m build
 
+doc:
+	cd docs && \
+	sphinx-apidoc -o source ../src && \
+	make html
+
 # Remove build folders
 clean:
 	@if [ -d ".dist" ]; then rm -r .dist; fi
 	@if [ -d "src/octopus_workflows.egg-info" ]; then rm -r src/octopus_workflows.egg-info; fi
+
+# Clean documentation
+clean-doc:
+	@if [ -f "docs/source/modules.rst" ]; then rm docs/source/modules.rst; fi
+	@if [ -f "docs/source/octopus_workflows.rst" ]; then rm docs/source/octopus_workflows.rst; fi
+	cd docs && make clean
 
 # Apply formatting
 format:
