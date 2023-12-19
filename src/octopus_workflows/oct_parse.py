@@ -3,6 +3,7 @@
 """
 # Support of | over Union for py37-39
 from __future__ import annotations
+
 import re
 from typing import List, Tuple
 
@@ -21,7 +22,7 @@ def parse_key_value_pairs(input: str) -> dict:
     input_dict = {}
 
     # Grab all key = value instances
-    pattern = r'(\S+)\s*=\s*(.+)'
+    pattern = r"(\S+)\s*=\s*(.+)"
 
     # Search for the substring
     matches = re.findall(pattern, input)
@@ -76,12 +77,14 @@ def parse_blocks(input: str):
     """
     # Definition of a block
     # match % followed by one or more word characters (letters, digits, or underscores)
-    block_keys = re.findall(r'%(\w+)', input)
+    block_keys = re.findall(r"%(\w+)", input)
     blocks = {key: parse_block(input, key) for key in block_keys}
 
-    valid_coord_keys = {'ReducedCoordinates', 'Coordinates'}
+    valid_coord_keys = {"ReducedCoordinates", "Coordinates"}
     coord_keys = set(block_keys).intersection(valid_coord_keys)
-    assert len(coord_keys) == 1, f"Coordinates specified twice in inp file: {coord_keys}"
+    assert (
+        len(coord_keys) == 1
+    ), f"Coordinates specified twice in inp file: {coord_keys}"
 
     # Clean up species quotations
     coord_key = coord_keys.pop()
@@ -127,7 +130,7 @@ def parse_oct_dict_to_values(key_values: dict, blocks: dict) -> dict:
                 recursive_modify(item, key, replace_val)
             else:
                 # Only match key when it's not part of a word and not preceded or followed by an underscore
-                pattern = rf'\b(?<!_){key}(?!_)\b'
+                pattern = rf"\b(?<!_){key}(?!_)\b"
                 lst[i] = re.sub(pattern, replace_val, item)
 
     # key-values from input
@@ -136,7 +139,7 @@ def parse_oct_dict_to_values(key_values: dict, blocks: dict) -> dict:
         for key2, block_val in blocks.items():
             if not isinstance(block_val, list):
                 # Only match key when it's not part of a word and not preceded or followed by an underscore
-                pattern = rf'\b(?<!_){key}(?!_)\b'
+                pattern = rf"\b(?<!_){key}(?!_)\b"
                 blocks[key2] = re.sub(pattern, var_val, block_val)
             else:
                 recursive_modify(block_val, key, var_val)
@@ -212,7 +215,7 @@ def parse_oct_input(input: str, do_substitutions=True) -> dict:
 
 
 def evaluate_expressions(
-        options: dict, keys: str | List[str], expressions: dict
+    options: dict, keys: str | List[str], expressions: dict
 ) -> dict:
     """
 
@@ -232,7 +235,7 @@ def evaluate_expressions(
                 except (AttributeError, TypeError, ValueError, SyntaxError):
                     pass
 
-    if type(keys) == str:
+    if isinstance(keys, str):
         keys = [keys]
 
     for key in keys:

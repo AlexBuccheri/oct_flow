@@ -6,13 +6,19 @@ import shutil
 from pathlib import Path
 from typing import Callable, Dict, List
 
-from octopus_workflows.components import (expand_input_dictionary, directory_generation, slurm_submission_scripts,
-                                          set_job_file_dependencies)
+from octopus_workflows.components import (
+    directory_generation,
+    expand_input_dictionary,
+    set_job_file_dependencies,
+    slurm_submission_scripts,
+)
 from octopus_workflows.metadata import create_hashes
 from octopus_workflows.oct_write import write_octopus_input
 
 
-def substitute_specific_settings(inputs: List[dict], meta_value_ops: Dict[str, Callable], meta_key: str):
+def substitute_specific_settings(
+    inputs: List[dict], meta_value_ops: Dict[str, Callable], meta_key: str
+):
     """
     TODO(Alex) Move this routine
     Operation should be a function that returns a dict of valid Octopus key:values
@@ -30,6 +36,7 @@ def substitute_specific_settings(inputs: List[dict], meta_value_ops: Dict[str, C
     return inputs
 
 
+# TODO(Alex) Move this class
 class OctopusJob:
     def __init__(self, directory, inp, slurm, hash, depends_on: dict):
         self.directory = directory
@@ -38,7 +45,7 @@ class OctopusJob:
         self.hash = hash
         self.depends_on = depends_on
 
-    def write(self, root='', parents=True, exist_ok=False):
+    def write(self, root="", parents=True, exist_ok=False):
         """
         :return:
         """
@@ -47,24 +54,29 @@ class OctopusJob:
         Path.mkdir(subdir, parents=parents, exist_ok=exist_ok)
 
         # Write out files
-        for fname, attr in [('inp', 'inp'), ('slurm.sh', 'slurm'), ('hash.txt', 'hash')]:
+        for fname, attr in [
+            ("inp", "inp"),
+            ("slurm.sh", "slurm"),
+            ("hash.txt", "hash"),
+        ]:
             with open(Path(subdir, fname), "w") as fid:
                 fid.write(self.__dict__[attr])
 
         # Copy dependencies
         for file in self.depends_on.values():
-            shutil.copyfile(file['source'], Path(root, file['dest']))
+            shutil.copyfile(file["source"], Path(root, file["dest"]))
 
 
-def ground_state_calculation(matrix: dict,
-                             static_options: dict,
-                             meta_key: str = "^",
-                             meta_value_ops: dict = None,
-                             file_rules=None,
-                             slurm_settings: dict = None,
-                             binary_path: str = ''
-                             ) -> Dict[str, OctopusJob]:
-    """ An Octopus Workflow.
+def ground_state_calculation(
+    matrix: dict,
+    static_options: dict,
+    meta_key: str = "^",
+    meta_value_ops: dict = None,
+    file_rules=None,
+    slurm_settings: dict = None,
+    binary_path: str = "",
+) -> Dict[str, OctopusJob]:
+    """An Octopus Workflow.
 
      Meta keys are keys with values that require substitution with some specified behaviour
      and then should be removed from the dict following this
@@ -103,14 +115,24 @@ def ground_state_calculation(matrix: dict,
     # Note location of any file dependencies
     file_dependencies = []
     for i, inp in enumerate(input_strings):
-        file_dependencies.append(set_job_file_dependencies(inp, job_ids[i], file_rules))
+        file_dependencies.append(
+            set_job_file_dependencies(inp, job_ids[i], file_rules)
+        )
 
     # Submission scripts
-    sub_scripts = slurm_submission_scripts(binary_path, slurm_settings, job_ids)
+    sub_scripts = slurm_submission_scripts(
+        binary_path, slurm_settings, job_ids
+    )
 
     # Package information
     jobs = {}
     for i, id in enumerate(job_ids):
-        jobs[id] = OctopusJob(id, input_strings[i], sub_scripts[i], hashes[i], file_dependencies[i])
+        jobs[id] = OctopusJob(
+            id,
+            input_strings[i],
+            sub_scripts[i],
+            hashes[i],
+            file_dependencies[i],
+        )
 
     return jobs

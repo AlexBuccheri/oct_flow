@@ -2,11 +2,11 @@
 """
 import copy
 import os
-from typing import List, Callable
+from typing import Callable, List
 
 import ase
-import numpy as np
 import simple_slurm
+
 from octopus_workflows.oct_ase import ase_atoms_to_oct_structure
 from octopus_workflows.oct_write import write_octopus_input
 from octopus_workflows.utils import cartesian_product
@@ -114,9 +114,9 @@ def ase_bulk_structure_constructor(
     return ase_inputs
 
 
-def inp_string(inputs: List[dict],
-               ase_inputs: List[ase.atoms.Atoms] = None
-               ) -> List[str]:
+def inp_string(
+    inputs: List[dict], ase_inputs: List[ase.atoms.Atoms] = None
+) -> List[str]:
     """Generate a list of Octopus input strings
 
     :param input:
@@ -201,6 +201,7 @@ def slurm_submission_scripts(oct_root: str, options: dict, job_ids: List[str]):
         for id in job_ids
     ]
 
+
 # TODO(Alex) Delete
 # def package_info(
 #     job_ids: List[str],
@@ -232,7 +233,9 @@ def slurm_submission_scripts(oct_root: str, options: dict, job_ids: List[str]):
 #     return jobs
 
 
-def set_job_file_dependencies(inp_string, destination, file_rules: List[Callable]) -> dict:
+def set_job_file_dependencies(
+    inp_string, destination, file_rules: List[Callable]
+) -> dict:
     """
     Evaluate rule/s to find file dependencies for a job
     :param file_rules: Should return a dict of file_name:source/file_name for as many files
@@ -242,7 +245,9 @@ def set_job_file_dependencies(inp_string, destination, file_rules: List[Callable
     all_files = {}
     for rule in file_rules:
         matched_files: dict = rule(inp_string)
-        matched_files_sd = {name: {'source': source, 'dest': f'{destination}/{name}'}
-                            for name, source in matched_files.items()}
+        matched_files_sd = {
+            name: {"source": source, "dest": f"{destination}/{name}"}
+            for name, source in matched_files.items()
+        }
         all_files.update(matched_files_sd)
     return all_files
