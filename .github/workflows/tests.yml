@@ -44,10 +44,10 @@ jobs:
       - name: Run unit tests with code cov
         run: pytest --junitxml=junit/test-results.xml --cov=src/ --cov-report=xml --cov-report=html  --cov-report=term --cov-fail-under=-1
 
-      - name: "Upload coverage data"
+      - name: Upload coverage data
         uses: actions/upload-artifact@v3
         with:
-          name: "coverage-data"
+          name: coverage-data
           path: |
             coverage.xml
             .coverage
@@ -80,8 +80,6 @@ jobs:
 
       - name: Combine coverage
         run: |
-#         This step is not required, given how I run the code cov
-#          python -m coverage combine
           python -m coverage html --skip-covered --skip-empty
 
           # Report and write to summary.
