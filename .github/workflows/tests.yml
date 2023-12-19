@@ -47,7 +47,9 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: "coverage-data"
-          path: .coverage.*
+          path: |
+            coverage.*
+            junit/test-results.xml
           if-no-files-found: ignore
 
   coverage:
@@ -90,3 +92,15 @@ jobs:
           name: html-report
           path: htmlcov
 #        if: ${{ failure() }}
+
+#      - name: "Create badge"
+#        uses: schneegans/dynamic-badges-action@v1.6.0
+#        with:
+#          auth: ${{ secrets.GIST_TOKEN }}
+#          gistID: YOUR_GIST_ID
+#          filename: covbadge.json
+#          label: Coverage
+#          message: ${{ env.total }}%
+#          minColorRange: 50
+#          maxColorRange: 90
+#          valColorRange: ${{ env.total }}
