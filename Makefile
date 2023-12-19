@@ -43,3 +43,12 @@ check-format:
 	ruff src/octopus_workflows --output-format=github
 	isort --check src/octopus_workflows
 	black --check src/octopus_workflows
+
+# Run unit tests. Note, more pytest options are inherited from pyproject
+# and tox options are specified in tox.ini
+test:
+	tox
+
+# Run codecov
+cov:
+	pytest --cov=src/ --cov-report term --cov-fail-under=-1
