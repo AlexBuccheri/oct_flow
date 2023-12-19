@@ -12,14 +12,14 @@ VENV_PATH := venv
 # Production installation
 install:
 	. $(VENV_PATH)/bin/activate
-	python -m pip install --upgrade pip
+	python -m pip install --upgrade pip setuptools wheel
 	python -m pip install .
 
 # Development installation
 # Install dependencies specified in .dev of pyproject.toml
 install-dev: pyproject.toml
 	. $(VENV_PATH)/bin/activate
-	python -m pip install --upgrade pip
+	python -m pip install --upgrade pip setuptools wheel
 	python -m pip install -e ".[dev]"
 
 # Build
@@ -40,6 +40,6 @@ format:
 
 # Check formatting
 check-format:
-	ruff src/octopus_workflows
+	ruff src/octopus_workflows --output-format=github
 	isort --check src/octopus_workflows
 	black --check src/octopus_workflows
