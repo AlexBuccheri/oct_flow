@@ -1,5 +1,8 @@
 # Octopus Workflows
 
+![Tests](https://github.com/AlexBuccheri/oct_flow/actions/workflows/tests.yml/badge.svg)
+
+
 ## Installation
 
 ### Virtual Env
