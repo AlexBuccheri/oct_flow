@@ -63,7 +63,17 @@ source .tox/py39/bin/activate
 
 **Add me**
 
-## Issues with Parsing
+## Issues
 
-**Add me**
+### Parsing
 
+* Substitution of variables - issues with the regex and substitute - need to resolve
+* Parsing mathematical expressions - have to specify
+* Parsing the various rules for blocks - not fulyl handled
+* Clearly the only way to effectively parse is to wrap the oct parser
+
+### Adding File Dependencies to the Workflow
+
+I think the cleanest way to do this is with file rules:
+* Attribute a file dependency to all calculations
+* Attribute a file dependency only to calculations that match a rule
