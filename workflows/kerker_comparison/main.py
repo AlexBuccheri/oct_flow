@@ -20,7 +20,7 @@ def no_kerker_jobs() -> dict:
     No preconditioning
     :return:
     """
-    oct_root_ada = '/u/abuc/packages/octopus/_build_main/installed'
+    oct_root_ada = '/u/abuc/packages/octopus/_build_main_gpu/installed'
 
     default_ada_gpu = {'nodes': 1,
                        'ntasks_per_node': 4,
