@@ -81,7 +81,25 @@ Once built, documentation can be viewed via [docs/build/html/index.html](docs/bu
 
 ## Using the Workflows
 
-**Add me**
+A workflow is run like:
+
+```shell
+python workflows/kerker_comparison/main.py
+```
+
+and then copied to the target machine like:
+
+```shell
+scp -r jobs/kerker_comparison/ ada01:.
+```
+
+`scp` works because I have `.ssh/config` set up to enable tunnelling.
+
+
+
+## Writing Workflows
+
+**ADD ME**
 
 ## Issues
 
