@@ -4,6 +4,7 @@
 # * Combine coverage steps from https://python-basics-tutorial.readthedocs.io/en/latest/test/coverage.html
 #   are totally pointless. All this info is already generated
 # * Extend to get codecov bagde: https://python-basics-tutorial.readthedocs.io/en/latest/test/coverage.html
+# * Add sphinx documentation testing
 name: Run formatting and unit tests
 
 on:

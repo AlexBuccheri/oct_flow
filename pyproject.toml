@@ -14,6 +14,7 @@ requires-python = ">=3.9"
 dependencies = [
   "ase==3.22.1",
   "Jinja2>=3.1.2",
+  "jupyter>=1.0.0",
   "matplotlib==3.8.0",
   "numpy==1.26.1",
   "simple-slurm>=0.2.6",
