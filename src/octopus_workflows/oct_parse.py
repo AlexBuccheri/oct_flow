@@ -84,14 +84,7 @@ def parse_blocks(input: str):
     coord_keys = set(block_keys).intersection(valid_coord_keys)
     assert (
         len(coord_keys) == 1
-    ), f"Coordinates specified twice in inp file: {coord_keys}"
-
-    # Clean up species quotations
-    coord_key = coord_keys.pop()
-    coordinates = []
-    for entry in blocks[coord_key]:
-        coordinates.append([x.replace('"', "") for x in entry])
-    blocks[coord_key] = coordinates
+    ), f"Coordinates specified more than once in inp file: {coord_keys}"
 
     return blocks
 
