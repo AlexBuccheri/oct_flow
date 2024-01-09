@@ -187,7 +187,7 @@ def slurm_submission_script(oct_root: str, options: dict) -> str:
     modules = "module load gcc/11 openmpi/4 cuda/11.4 openmpi_gpu/4"
 
     vars = f'export PATH="{oct_root}/bin:${{PATH}}" \n'
-    vars += "export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}"
+    vars += "export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}\n"
     vars += "export OMP_PLACES=cores"
 
     srun = "cd ${SLURM_SUBMIT_DIR}\n"
