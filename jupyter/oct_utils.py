@@ -1,7 +1,10 @@
 """ Utilities for parsing data
 """
+import math
 from pathlib import Path
 import numpy as np
+from typing import List
+import matplotlib.pyplot as plt
 
 
 class ConvergenceData:
@@ -46,6 +49,37 @@ class ConvergenceData:
         return self.data.shape[0]
 
 
+def parse_convergence_calculations(subdirs: List[str], columns=None) -> dict:
+    """ Parse data from convergence files into a dictionary.
+
+    Generality of routine broken by `mixer` key, which is specific to
+    preconditioning calculations.
+
+    :param subdirs: List of calculation directories. Expect the full path
+    :param columns: Optional list of columns to return. Defaults to relative
+    change in density.
+    :return: system_calcs: Dict with keys of system names, and values
+    = {'mixer': 'mixer', 'data': np.ndarray}
+    """
+    if columns is None:
+        columns = [0, 4]
+
+    system_calcs = {}
+
+    for subdir in map(Path, subdirs):
+        if not subdir.is_dir():
+            raise NotADirectoryError(f'Cannot find {subdir.as_posix()}')
+        # Note, this is also not general, but specific to my naming convention
+        subnames = Path(subdir).name.split('_')
+        mixer = subnames.pop()
+        system_name = "".join(s + '_' for s in subnames)[:-1]
+
+        data = np.loadtxt(Path(subdir, 'static/convergence'), skiprows=1)
+        system_calcs[system_name] = {'mixer': mixer, 'data': data[:, columns]}
+
+    return system_calcs
+
+
 def parse_profiling(root) -> dict:
     """
     :param root:
@@ -85,3 +119,34 @@ def parse_profiling(root) -> dict:
                                         }
                                    })
     return timings
+
+
+# TODO(Alex) This is generic, and could be moved
+def initialise_subplot(n_plots: int, n_cols: int):
+    """ Initialise matplotlib subplots for a specified grid.
+
+    :param n_plots: Number of plots
+    :param n_cols:  Number of columns.
+    :return: fig, axs
+    """
+    # Plot settings
+    assert n_cols > 0, "Must have at least one column"
+    n_rows = math.ceil(n_plots / n_cols)
+
+    # Calculate the aspect ratio of standard A4
+    aspect_ratio = 297.0 / 210.0
+
+    # Calculate the width of the figure in inches
+    fig_width = 8.3  # A4 width in inches (approx)
+
+    # Calculate the height of the figure in inches to maintain aspect ratio
+    fig_height = fig_width / aspect_ratio * (n_rows / n_cols)
+
+    fig, axs = plt.subplots(n_rows, n_cols, figsize=(fig_width, fig_height))
+    fig.set_tight_layout(True)
+
+    # axs will annoyingly return as a 1D array
+    if n_rows == 1:
+        axs = np.reshape(axs, (1, n_cols))
+
+    return fig, axs
