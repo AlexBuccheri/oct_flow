@@ -121,7 +121,7 @@ def parse_profiling(root) -> dict:
     return timings
 
 
-# TODO(Alex) This is generic, and could be moved
+# TODO(Alex) This is generic, and could be moved to plotting
 def initialise_subplot(n_plots: int, n_cols: int):
     """ Initialise matplotlib subplots for a specified grid.
 
@@ -150,3 +150,50 @@ def initialise_subplot(n_plots: int, n_cols: int):
         axs = np.reshape(axs, (1, n_cols))
 
     return fig, axs
+
+
+# TODO(Alex) This is generic, and could be moved to plotting
+def bar_plot(systems: List[str], fields: List[dict], width=0.27, bar_labels=None, title=''):
+    """ Plot several bar plots (one per field) for each system
+
+    Adapted from this reference:
+    https://stackoverflow.com/questions/14270391/how-to-plot-multiple-bars-grouped
+
+    :param systems:
+    :param fields:
+    :param width:
+    :return:
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    x_dummy = np.arange(len(systems))  # the x locations for the systems
+    ax.set_title(title)
+
+    plots = []
+    field_labels = []
+    for i, field in enumerate(fields):
+        data = field.pop('data')
+        label = field.pop('label')
+        # Plot a bar chart for single field, for all systems
+        plot = ax.bar(x_dummy + (i * width), data, width, **field)
+        plots.append(plot)
+        field_labels.append(label)
+
+    ax.set_ylabel('Time (s)')
+    ax.set_xticks(x_dummy + ((len(fields) - 1) * 0.5 * width))
+    ax.set_xticklabels(systems)
+    ax.legend(plots, field_labels)
+
+    if bar_labels is None:
+        return
+
+    # Add N SCF iterations as labels. Want plots 0 and 1
+    for labels_for_field in bar_labels:
+        ifield = labels_for_field['field']
+        labels = labels_for_field['labels']
+        assert len(labels) == len(systems)
+        # For a given field, loop over each bar of the plot
+        # i.e iterate over all systems contributing data to this field
+        for i, bar in enumerate(plots[ifield]):
+            yval = bar.get_height()
+            plt.text(bar.get_x() + bar.get_width() / 2, yval + 0.1, labels[i], ha='center', va='bottom')
