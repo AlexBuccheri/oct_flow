@@ -39,6 +39,12 @@ class ConvergenceData:
     def size(self) -> tuple:
         return self.data.shape
 
+    def n_scf_iterations(self) -> int:
+        """ Get number of SCF iterations run (does not imply convergence)
+        Number of SCF iterations == number of rows
+        """
+        return self.data.shape[0]
+
 
 def parse_profiling(root) -> dict:
     """
