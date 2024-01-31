@@ -32,14 +32,15 @@ fixed_options = {'CalculationMode': 'gs',
                  'EigensolverTolerance': 1.e-7,
                  'ChebyshevFilterDegree': 30,
                  'ExtraStatesInPercent': 25,
+                 'MixingScheme': 'broyden'
                  # Grid should be entirely specified in the benchmark structure settings
                  }
 
 # Kerker-specific operations
-kerker_options = {'MixField': 'potential',
+kerker_options = {'MixField': 'density',
                   'MixingKerker': 'yes',
-                  'MixingKerkerFactor': '1.0',  # Default
-                  'Mixing': '0.3'}  # Default
+                  'MixingKerkerFactor': '1.0',  # Default 1.0
+                  'Mixing': '0.3'}  # Default 0.3
 
 meta_key = "^"
 meta_value_ops = {'^system_files': file_to_oct_dict}
@@ -50,10 +51,9 @@ benchmark_root = "/Users/alexanderbuccheri/Codes/cell_building/data/benchmark_st
 matrix = {'^system_files': ["1ALA", "2ALA", "2Dharmonic", "3ALA", "4ALA", "ASC", "Cr3", "Fe_cubic",
                             "Fe_primitive", "N_GNF", "NiO", "Si", "Si001_1x1_2H", "TiO2",
                             "WSe2", "benzene", "beta-cyclodextrin", "betaine", "methane", "oxyluciferin",
-                            "polyFePc", "tetraazacubane"]
-,
-          'MixingScheme': ['linear', 'broyden']
+                            "polyFePc", "tetraazacubane"],
           }
+
 
 # Prepend with benchmark root
 matrix['^system_files'] = [benchmark_root + name for name in matrix['^system_files']]
