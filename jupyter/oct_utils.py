@@ -49,33 +49,58 @@ class ConvergenceData:
         return self.data.shape[0]
 
 
-def parse_convergence_calculations(subdirs: List[str], columns=None) -> dict:
-    """ Parse data from convergence files into a dictionary.
+# def parse_convergence_calculations(subdirs: List[str], columns=None, get_system_name=lambda x: x) -> dict:
+#     """ Parse data from convergence files into a dictionary.
+#
+#     Generality of routine broken by `mixer` key, which is specific to
+#     preconditioning calculations.
+#
+#     :param subdirs: List of calculation directories. Expect the full path
+#     :param columns: Optional list of columns to return. Defaults to relative
+#     change in density.
+#     :return: system_calcs: Dict with keys of system names, and values
+#     = {'mixer': 'mixer', 'data': np.ndarray}
+#     """
+#     if columns is None:
+#         columns = [0, 4]
+#
+#     system_calcs = {}
+#
+#     for subdir in map(Path, subdirs):
+#         if not subdir.is_dir():
+#             raise NotADirectoryError(f'Cannot find {subdir.as_posix()}')
+#         # Note, this is also not general, but specific to my naming convention
+#         subnames = Path(subdir).name.split('_')
+#         mixer = subnames.pop()
+#         system_name = "".join(s + '_' for s in subnames)[:-1]
+#
+#         data = np.loadtxt(Path(subdir, 'static/convergence'), skiprows=1)
+#         system_calcs[system_name] = {'mixer': mixer, 'data': data[:, columns]}
+#
+#     return system_calcs
 
-    Generality of routine broken by `mixer` key, which is specific to
-    preconditioning calculations.
+
+def parse_convergence_calculations(dirs: List[str], columns=None, get_system_name=lambda d: d.name) -> dict:
+    """ Parse data from convergence files into a dictionary.
 
     :param subdirs: List of calculation directories. Expect the full path
     :param columns: Optional list of columns to return. Defaults to relative
     change in density.
-    :return: system_calcs: Dict with keys of system names, and values
-    = {'mixer': 'mixer', 'data': np.ndarray}
+    :param get_system_name: Callable function that gets the system name from the subdirectory.
+    Default assumes subdirectory name is the system name.
+
+    :return: system_calcs: Dict with keys of system names, and values: {'directory', 'data'}
     """
     if columns is None:
         columns = [0, 4]
 
     system_calcs = {}
-
-    for subdir in map(Path, subdirs):
-        if not subdir.is_dir():
-            raise NotADirectoryError(f'Cannot find {subdir.as_posix()}')
-        # Note, this is also not general, but specific to my naming convention
-        subnames = Path(subdir).name.split('_')
-        mixer = subnames.pop()
-        system_name = "".join(s + '_' for s in subnames)[:-1]
-
-        data = np.loadtxt(Path(subdir, 'static/convergence'), skiprows=1)
-        system_calcs[system_name] = {'mixer': mixer, 'data': data[:, columns]}
+    for dir in map(Path, dirs):
+        if not dir.is_dir():
+            raise NotADirectoryError(f'Cannot find {dir.as_posix()}')
+        system_name = get_system_name(dir)
+        data = np.loadtxt(Path(dir, 'static/convergence'), skiprows=1)
+        system_calcs[system_name] = {'directory': dir.as_posix(), 'data': data[:, columns]}
 
     return system_calcs
 
