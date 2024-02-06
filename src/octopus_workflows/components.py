@@ -60,7 +60,6 @@ def substitute_specific_settings(
     for input in inputs:
         for id in meta_keys:
             if id in list(input):
-                print(specific_options[input[id]])
                 input.update(copy.deepcopy(specific_options[input[id]]))
     return inputs
 
@@ -153,7 +152,7 @@ def directory_generation(matrix: dict, prefix="", suffix="") -> List[str]:
     # Bit of a hack. If a directory defines a matrix value, then just take the basename
     mat = {}
     for key, value in matrix.items():
-        mat[key] = [os.path.basename(x) for x in value]
+        mat[key] = [os.path.basename(str(x)) for x in value]
     options = cartesian_product(mat)
 
     ids = []

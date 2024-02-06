@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from src.octopus_workflows.components import set_job_file_dependencies
+from src.octopus_workflows.components import set_job_file_dependencies, directory_generation
 from workflows.kerker_comparison.settings import find_pseudopotential
 
 
@@ -71,3 +71,16 @@ aCell | bCell | cCell
     inp_string = "Dummy string - will not match"
     files = set_job_file_dependencies(inp_string, "new/location", [find_pseudopotential])
     assert files == {}
+
+
+def test_directory_generation():
+    """
+    Create directory names from each permutation of dict values
+    """
+    matrix = {'^system_files': ['benchmark_structures/1ALA'],
+              'MixingKerkerFactor': [1.0, 2.0],
+              'Mixing': [0.3]
+              }
+    expected_dir_names = ['1ALA_1.0_0.3', '1ALA_2.0_0.3']
+    dir_names = directory_generation(matrix)
+    assert dir_names == expected_dir_names
