@@ -1,9 +1,10 @@
 """ Utilities for parsing data
 """
+import itertools
 import math
 from pathlib import Path
 import numpy as np
-from typing import List
+from typing import Dict, List
 import matplotlib.pyplot as plt
 
 
@@ -175,6 +176,74 @@ def initialise_subplot(n_plots: int, n_cols: int):
         axs = np.reshape(axs, (1, n_cols))
 
     return fig, axs
+
+
+def plot_convergence(system_calcs: Dict[str, list], n_cols: int, common_settings: dict):
+    """Plot N calculations per system
+
+    TODO(Alex) Note, the font sizes etc, should scale with the number of cols per row.
+    Effectively hard-coded for 2 columns.
+
+    :param system_calcs:
+    :param n_cols:
+    :param common_settings:
+    :return:
+    """
+    n_systems = len(system_calcs)
+    n_rows = math.ceil(n_systems / n_cols)
+    fig, axes = initialise_subplot(n_systems, n_cols=n_cols)
+
+    # Initialise counters
+    empty_lims = 0, 0
+    i_cmp = -1
+
+    map_index_to_name = {i: name for i, name in enumerate(system_calcs.keys())}
+
+    for i, j in itertools.product(range(n_rows), range(n_cols)):
+        i_cmp += 1
+
+        # Exit when last entry is reached.
+        if i_cmp > len(system_calcs) - 1:
+            empty_lims = i, j
+            break
+
+        # All calculations for ith system
+        name = map_index_to_name[i_cmp]
+        calculations = system_calcs[name]
+
+        # Plot calculations for a given system
+        for calc in calculations:
+            try:
+                data = calc.pop('data')
+                axes[i, j].plot(data[:, 0], data[:, 1], **calc['plot_options'])
+            except KeyError:
+                calc_type = 'preconditioning' if calc['preconditioning'] else 'no preconditioning'
+                print(f'No data for {name} computed with {calc_type}')
+
+        # Scales
+        axes[i, j].set_yscale('log')
+
+        # Ticks
+        axes[i, j].tick_params(axis='both', which='major', labelsize=common_settings['label_size'])
+        axes[i, j].tick_params(axis='both', which='minor', labelsize=common_settings['label_size'])
+
+        # Labels
+        axes[i, j].set_xlabel(common_settings['xlabel'], fontsize=common_settings['font_size'])
+        axes[i, j].set_ylabel(common_settings['ylabel'], fontsize=common_settings['font_size'])
+        axes[i, j].legend(prop={'size': common_settings['legend_fsize']})
+        axes[i, j].set_title(f'{name}', fontsize=common_settings['font_size'])
+
+    # Remove any empty subplots
+    if empty_lims != (0, 0):
+        for i, j in itertools.product(range(empty_lims[0], n_rows), range(empty_lims[1], n_cols)):
+            axes[i, j].remove()
+
+    plt.tight_layout()
+
+    if 'title' in common_settings:
+        fig.suptitle(common_settings['title'])
+
+    return fig, axes
 
 
 # TODO(Alex) This is generic, and could be moved to plotting
